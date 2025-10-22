@@ -13,7 +13,7 @@ def test_caso_normal_dia_habil():
     """
     print("Ejecutando: test_caso_normal_dia_habil")
     fecha = "17/10/2025" # Viernes
-    datos = mag_scraper.scrape_mag(fecha, fecha, tipo_hacienda='TODOS')
+    datos = mag_scraper.scrape_mag(fecha, tipo_hacienda='TODOS')
     
     # Aserción: Afirmamos que la lista de datos NO debe estar vacía.
     assert datos, "El scraper no debería devolver una lista vacía en un día hábil."
@@ -26,24 +26,12 @@ def test_caso_extremo_dia_sin_operaciones():
     """
     print("Ejecutando: test_caso_extremo_dia_sin_operaciones")
     fecha = "20/10/2025" # Lunes
-    datos = mag_scraper.scrape_mag(fecha, fecha, tipo_hacienda='TODOS')
+    datos = mag_scraper.scrape_mag(fecha, tipo_hacienda='TODOS')
     
     # Aserción: Afirmamos que la lista de datos SÍ debe estar vacía.
     assert not datos, "El scraper debería devolver una lista vacía en un día sin operaciones."
     print("✅ ÉXITO ESPERADO: No se encontraron registros.")
 
-def test_caso_curioso_rango_semana_completa():
-    """
-    Prueba que el scraper maneja correctamente un rango de fechas.
-    """
-    print("Ejecutando: test_caso_curioso_rango_semana_completa")
-    fecha_inicio = "6/10/2025"
-    fecha_fin = "12/10/2025"
-    datos = mag_scraper.scrape_mag(fecha_inicio, fecha_fin, tipo_hacienda='TODOS')
-    
-    # Aserción: Afirmamos que debe encontrar datos en un rango de semana.
-    assert datos and len(datos) > 0
-    print(f"✅ ÉXITO: Se encontraron {len(datos)} registros en el rango de la semana.")
 
 def test_caso_curioso_filtro_invernada():
     """
@@ -51,7 +39,7 @@ def test_caso_curioso_filtro_invernada():
     """
     print("Ejecutando: test_caso_curioso_filtro_invernada")
     fecha = "17/10/2025"
-    datos = mag_scraper.scrape_mag(fecha, fecha, tipo_hacienda='INVERNADA')
+    datos = mag_scraper.scrape_mag(fecha, tipo_hacienda='INVERNADA')
     
     # Puede que haya o no datos de Invernada, pero no debe fallar.
     # Aserción: El resultado debe ser una lista (aunque esté vacía).
@@ -64,7 +52,7 @@ def test_caso_extremo_fecha_futura():
     """
     print("Ejecutando: test_caso_extremo_fecha_futura")
     fecha = "01/01/2099"
-    datos = mag_scraper.scrape_mag(fecha, fecha, tipo_hacienda='TODOS')
+    datos = mag_scraper.scrape_mag(fecha, tipo_hacienda='TODOS')
     
     # Aserción: El resultado debe ser una lista vacía.
     assert not datos
@@ -84,7 +72,7 @@ def test_manejo_de_timeout(monkeypatch):
     
     monkeypatch.setattr(requests.Session, "post", mock_post)
     
-    datos = mag_scraper.scrape_mag("17/10/2025", "17/10/2025")
+    datos = mag_scraper.scrape_mag("17/10/2025")
     assert not datos, "El scraper debería devolver una lista vacía en caso de timeout."
     print("✅ ÉXITO: El scraper manejó correctamente el timeout.")
 
@@ -106,6 +94,6 @@ def test_manejo_de_error_http(monkeypatch):
 
     monkeypatch.setattr(requests.Session, "post", mock_post)
 
-    datos = mag_scraper.scrape_mag("17/10/2025", "17/10/2025")
+    datos = mag_scraper.scrape_mag("17/10/2025")
     assert not datos, "El scraper debería devolver una lista vacía ante un error HTTP."
     print("✅ ÉXITO: El scraper manejó correctamente un error 500 del servidor.")
