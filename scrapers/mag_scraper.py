@@ -17,13 +17,12 @@ def limpiar_numero(texto_numero):
     except (ValueError, TypeError):
         return 0.0
 
-def scrape_mag(fecha_inicio_str, fecha_fin_str, tipo_hacienda='TODOS', debug=False):
+def scrape_mag(fecha_consulta, tipo_hacienda='TODOS', debug=False):
     """
     Scrapea la tabla del MAG usando una lógica de parseo flexible para
     manejar filas con diferente número de celdas.
     
-    :param fecha_inicio_str: Fecha de inicio en formato "DD/MM/YYYY".
-    :param fecha_fin_str: Fecha de fin en formato "DD/MM/YYYY".
+    :param fecha_consulta: Fecha de consulta en formato "DD/MM/YYYY".
     :param tipo_hacienda: 'TODOS', 'FAENA', o 'INVERNADA'.
     :param debug: Si es True, imprime información detallada del proceso.
     """
@@ -34,7 +33,7 @@ def scrape_mag(fecha_inicio_str, fecha_fin_str, tipo_hacienda='TODOS', debug=Fal
         'Referer': URL
     }
 
-    print(f"Iniciando scraper para MAG (Fechas: {fecha_inicio_str}-{fecha_fin_str}, Tipo: {tipo_hacienda})...")
+    print(f"Iniciando scraper para MAG (Fecha: {fecha_consulta}, Tipo: {tipo_hacienda})...")
     datos_mag = []
 
     try:
@@ -44,7 +43,7 @@ def scrape_mag(fecha_inicio_str, fecha_fin_str, tipo_hacienda='TODOS', debug=Fal
 
             mapa_tipo = {'TODOS': '0', 'FAENA': '1', 'INVERNADA': '2'}
             payload = {
-                'txtFechaIni': fecha_inicio_str, 'txtFechaFin': fecha_fin_str,
+                'txtFechaIni': fecha_consulta, 'txtFechaFin': fecha_consulta,
                 'LisTipo': mapa_tipo.get(tipo_hacienda, '0'), 'Submit': 'BUSCAR'
             }
             
@@ -68,7 +67,6 @@ def scrape_mag(fecha_inicio_str, fecha_fin_str, tipo_hacienda='TODOS', debug=Fal
                     for fila in filas:
                         celdas_texto = [td.get_text(strip=True) for td in fila.find_all('td')]
                         
-                        # --- CORRECCIÓN CRÍTICA Y FLEXIBLE ---
                         # Aceptamos filas con 11 o 12 celdas.
                         # Nos aseguramos de que la segunda celda tenga contenido y no sea el pie de página.
                         if len(celdas_texto) >= 11 and celdas_texto[1] and 'Totales' not in celdas_texto[1]:
@@ -80,8 +78,7 @@ def scrape_mag(fecha_inicio_str, fecha_fin_str, tipo_hacienda='TODOS', debug=Fal
                                 
                             registro = {
                                 'fuente': 'MAG_Analitico',
-                                'fecha_consulta_inicio': fecha_inicio_str,
-                                'fecha_consulta_fin': fecha_fin_str,
+                                'fecha_consulta': fecha_consulta,
                                 'tipo_hacienda': tipo_hacienda,
                                 'categoria_original': celdas_texto[1],
                                 'raza': celdas_texto[2],
@@ -113,12 +110,12 @@ def scrape_mag(fecha_inicio_str, fecha_fin_str, tipo_hacienda='TODOS', debug=Fal
 # --- Bloque para probar este script individualmente ---
 if __name__ == "__main__":
     # Cambiamos los parámetros para una nueva prueba
-    fecha_prueba = "9/10/2025"  # Un jueves
-    tipo_prueba = "FAENA"
+    fecha_prueba = "21/10/2025"  # Un jueves
+    tipo_prueba = "TODOS"
     
     print(f"--- Probando scraper para fecha: {fecha_prueba} y tipo: {tipo_prueba} ---")
     
-    datos = scrape_mag(fecha_prueba, fecha_prueba, tipo_hacienda=tipo_prueba, debug=False)
+    datos = scrape_mag(fecha_prueba, tipo_hacienda=tipo_prueba, debug=False)
     
     if datos:
         print(f"\n--- Registros Extraídos de MAG ({fecha_prueba} - {tipo_prueba}) ---")
