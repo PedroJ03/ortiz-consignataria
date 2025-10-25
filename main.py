@@ -136,8 +136,8 @@ if __name__ == "__main__":
     print(f"Iniciando ejecución para la fecha: {fecha_a_ejecutar}")
     if modo_debug: print("Modo DEBUG activado.")
 
-    #ejecutar_proceso_completo(fecha_a_ejecutar, debug=modo_debug)
+    ejecutar_proceso_completo(fecha_a_ejecutar, debug=modo_debug)
 
     # --- Prueba manual ---
-    print("\n--- EJECUTANDO PRUEBA MANUAL PARA EL 17/10/2025 ---")
-    ejecutar_proceso_completo("17/10/2025", debug=True)
+    #print("\n--- EJECUTANDO PRUEBA MANUAL PARA EL 17/10/2025 ---")
+    #ejecutar_proceso_completo("17/10/2025", debug=True)
