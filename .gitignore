@@ -211,3 +211,5 @@ entorno_consignataria/
 
 # SQLite Database
 database/*.db
+
+output/
