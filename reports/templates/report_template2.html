@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Precios - {{ fecha_reporte }}</title>
+    <style>
+        /* --- Fuentes y Configuración de Página --- */
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Oswald:wght@400;500;700&display=swap');
+
+        @page {
+            size: A4;
+            margin: 0;
+
+            /* --- Footer (Sin cambios) --- */
+            @bottom-center {
+                content: "Ortiz y Cía. Consignatarios — Instagram: @ortiz.consignatarios - Wpp (2262) 508401 | Página " counter(page) "/" counter(pages);
+                font-family: 'Lato', sans-serif;
+                font-size: 7.5pt;
+                color: #FFFFFF;
+                background-color: #00204a;
+                vertical-align: middle;
+                line-height: 1.5cm; /* Igual a la altura */
+                padding: 0 1.5cm;
+                height: 1.5cm;
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+            }
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            font-size: 8.5pt;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            background-color: #f4f6f8;
+        }
+
+        /* --- Contenedor Principal (Padding inferior ajustado) --- */
+        .container {
+             padding: 0 1.5cm 2.0cm 1.5cm; /* Sin padding superior, el header lo maneja */
+             position: relative;
+             z-index: 1;
+        }
+
+        /* --- Header Ampliado (Según Dibujo) --- */
+        .header {
+            height: auto; /* Altura automática */
+            min-height: 5cm; /* Altura mínima considerable (ajusta si es necesario) */
+            background-color: #ffffff;
+            padding: 0.1cm 0.2cm; /* Padding generoso */
+            box-sizing: border-box;
+            border-bottom: 6px solid #00204a; /* Borde más grueso */
+            display: flex;
+            align-items: center; /* Centrar verticalmente */
+            justify-content: flex-start; /* Alinear items al inicio (izquierda) */
+            gap: 0.4cm; /* Espacio significativo entre logo y texto */
+            margin-bottom: 0.1cm; /* Espacio antes del contenido principal */
+        }
+        .logo {
+            max-width: 5.5cm; /* Ancho máximo grande (ajusta) */
+            max-height: 5.5cm; /* Altura máxima grande (ajusta) */
+            height: auto;
+            width: auto;
+            flex-shrink: 0; /* Evitar que se encoja */
+        }
+        .header-text {
+            text-align: left;
+            flex-grow: 1; /* Ocupa el espacio restante */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .header h1 {
+            font-family: 'Oswald', sans-serif;
+            color: #00204a;
+            margin: 0 0 5px 0; /* Más margen inferior */
+            font-size: 32pt; /* Título aún más grande */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.1; /* Ajustar interlineado si es necesario */
+        }
+        .header p.subtitle {
+            margin: 0 0 8px 0; /* Más margen inferior */
+            font-size: 13pt; /* Más grande */
+            color: #333; /* Más oscuro */
+            font-weight: 400;
+        }
+        .header .tipo-hacienda {
+            font-family: 'Oswald', sans-serif;
+            font-size: 14pt;
+            color: #cbd630;
+            padding: 0px 4px; /* Más padding */
+            display: flex; 
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 4px; /* Esquinas más redondeadas */
+            letter-spacing: 0.8px;
+        }
+        /* --- Información de contacto más protagonista --- */
+        .top-info {
+            font-size: 8pt; /* Ligeramente más grande */
+            color: #00204a; /* Color principal */
+            font-weight: 700; /* Negrita */
+            margin-top: 10px; /* Más espacio */
+            letter-spacing: 0.4px;
+            text-align: left;
+            border-top: 1px solid #eee; /* Línea separadora sutil */
+            padding-top: 8px; /* Espacio sobre la línea */
+        }
+
+        /* --- (Resto de los estilos sin cambios) --- */
+        .category-block { margin-top: 6mm; border: 1px solid #dbe1e8; background-color: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 3px 8px rgba(0, 32, 74, 0.06); }
+        .category-header { background-color: #00204a; padding: 9px 15px; }
+        .category-header h2 { font-family: 'Oswald', sans-serif; margin: 0; font-size: 14pt; font-weight: 500; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; }
+        .data-item-container { padding: 5px 15px 10px 15px; }
+        .data-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px dashed #e1e5ea; }
+        .data-item:last-child { border-bottom: none; }
+        .item-info { flex-basis: 25%; padding-right: 15px; }
+        .item-info .raza { font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 11pt; color: #00204a; display: block; margin-bottom: 2px; }
+        .item-info .peso { font-size: 8pt; color: #666; }
+        .item-prices { flex-basis: 40%; display: flex; justify-content: space-around; align-items: center; text-align: center; border-left: 1px solid #eee; border-right: 1px solid #eee; padding: 0 10px; }
+        .price-point {}
+        .price-point .label { display: block; font-size: 6.5pt; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 3px; }
+        .price-point .value { font-family: 'Oswald', sans-serif; font-size: 13pt; font-weight: 500; color: #333; line-height: 1.1; }
+        .price-point.promedio .value { font-size: 17pt; font-weight: 700; color: #00204a; }
+        .item-volume { flex-basis: 35%; padding-left: 15px; text-align: right; }
+        .volume-pair, .total-value { margin-bottom: 4px; }
+        .volume-pair .label, .total-value .label { font-size: 7pt; font-weight: 700; color: #666; margin-right: 5px; display: inline-block; }
+        .volume-pair .value, .total-value .value { font-weight: 700; font-size: 9pt; color: #00204a; font-variant-numeric: tabular-nums; white-space: nowrap; display: inline-block; }
+        .total-value { margin-top: 8px; padding-top: 8px; border-top: 1px dotted #ccc; }
+        .total-value .value { font-family: 'Oswald', sans-serif; font-size: 11pt; font-weight: 700; }
+        .no-data { text-align: center; color: #6c757d; font-style: italic; padding: 30px 15px; background-color: #fff;}
+    </style>
+</head>
+<body>
+    {# --- Header NO Fijo --- #}
+    <div class="header">
+        {% if logo_path %}
+            <img src="{{ logo_path }}" alt="Logo Consignataria Ortiz" class="logo">
+        {% endif %}
+        <div class="header-text">
+            <h1>Reporte de Precios</h1>
+            <p class="subtitle">{{ fuente }} - {{ fecha_reporte }}</p>
+            <div class="tipo-hacienda">Tipo: {{ tipo_hacienda }}</div>
+            <div class="top-info">
+                Ortiz y Cía. Consignatarios — Instagram: @ortiz.consignatarios — Wpp (2262) 508401
+            </div>
+        </div>
+    </div>
+
+    {# --- Contenido Principal --- #}
+    <div class="container">
+        {% if datos %}
+            {% for categoria, items_grupo in datos | groupby('categoria_original') %}
+                <div class="category-block">
+                    <div class="category-header">
+                        <h2>{{ categoria }}</h2>
+                    </div>
+                    <div class="data-item-container">
+                        {% for fila in items_grupo %}
+                        <div class="data-item">
+                            <div class="item-info">
+                                <span class="raza">{{ fila.raza or 'N/A' }}</span>
+                                <span class="peso">{{ fila.rango_peso or 'Peso N/A' }}</span>
+                            </div>
+                            <div class="item-prices">
+                                <div class="price-point">
+                                    <span class="label">Máx $/Kg</span>
+                                    <span class="value">{{ "%.2f"|format(fila.precio_max_kg) if fila.precio_max_kg is not none else '-' }}</span>
+                                </div>
+                                <div class="price-point promedio">
+                                    <span class="label">Prom $/Kg</span>
+                                    <span class="value">{{ "%.2f"|format(fila.precio_promedio_kg) if fila.precio_promedio_kg is not none else '-' }}</span>
+                                </div>
+                                <div class="price-point">
+                                    <span class="label">Mín $/Kg</span>
+                                    <span class="value">{{ "%.2f"|format(fila.precio_min_kg) if fila.precio_min_kg is not none else '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="item-volume">
+                                <div class="volume-pair">
+                                    <span class="label">Cabezas:</span>
+                                    <span class="value">{{ "{:,}".format(fila.cabezas|int) if fila.cabezas is not none else '-' }}</span>
+                                </div>
+                                <div class="volume-pair">
+                                    <span class="label">Kgs Total:</span>
+                                    <span class="value">{{ "{:,}".format(fila.kilos_total|int) if fila.kilos_total is not none else '-' }}</span>
+                                </div>
+                                <div class="total-value">
+                                   <span class="label">Importe Total:</span>
+                                   <span class="value">{{ "{:,.2f}".format(fila.importe_total) if fila.importe_total is not none else '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+             <div class="no-data">
+                 <p>No se encontraron datos para esta fecha.</p>
+             </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+
