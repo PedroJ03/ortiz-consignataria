@@ -4,3 +4,4 @@ pandas
 pytest
 Jinja2 
 WeasyPrint
+python-dotenv
