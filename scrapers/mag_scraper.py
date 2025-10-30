@@ -2,6 +2,11 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
+import time # Para añadir pausa
+
+# Requerido por el bloque de prueba si se ejecuta solo
+from dotenv import load_dotenv
+load_dotenv() 
 
 def limpiar_numero(texto_numero):
     """
@@ -11,20 +16,21 @@ def limpiar_numero(texto_numero):
     if not texto_numero or not isinstance(texto_numero, str):
         return 0.0
     try:
-        # Quita el símbolo '$', los espacios, los puntos y reemplaza la coma
-        texto_limpio = texto_numero.strip().replace('$', '').replace('.', '')
-        return float(texto_limpio.replace(',', '.'))
+        texto_limpio = texto_numero.strip().replace('$', '')
+        return float(texto_limpio.replace('.', '').replace(',', '.'))
     except (ValueError, TypeError):
         return 0.0
 
-def scrape_mag(fecha_consulta, tipo_hacienda='TODOS', debug=False):
+# --- Modificado: Ya no necesita tipo_hacienda como parámetro ---
+def scrape_mag_faena(fecha_inicio_str, fecha_fin_str, debug=False):
     """
-    Scrapea la tabla del MAG usando una lógica de parseo flexible para
-    manejar filas con diferente número de celdas.
+    Scrapea la tabla de FAENA del MAG para las fechas especificadas,
+    obteniendo primero una sesión válida.
     
-    :param fecha_consulta: Fecha de consulta en formato "DD/MM/YYYY".
-    :param tipo_hacienda: 'TODOS', 'FAENA', o 'INVERNADA'.
+    :param fecha_inicio_str: Fecha de inicio en formato "DD/MM/YYYY".
+    :param fecha_fin_str: Fecha de fin en formato "DD/MM/YYYY".
     :param debug: Si es True, imprime información detallada del proceso.
+    :return: Lista de diccionarios con los datos de FAENA.
     """
     
     URL = "https://www.mercadoagroganadero.com.ar/dll/hacienda6.dll/haciinfo000225"
@@ -32,21 +38,32 @@ def scrape_mag(fecha_consulta, tipo_hacienda='TODOS', debug=False):
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0',
         'Referer': URL
     }
-
-    print(f"Iniciando scraper para MAG (Fecha: {fecha_consulta}, Tipo: {tipo_hacienda})...")
+    
+    # --- Modificado: Siempre buscará FAENA ---
+    tipo_hacienda_fijo = 'FAENA' 
+    print(f"Iniciando scraper para MAG (Fechas: {fecha_inicio_str}-{fecha_fin_str}, Tipo: {tipo_hacienda_fijo})...")
     datos_mag = []
 
     try:
         with requests.Session() as s:
             s.headers.update(HEADERS)
-            s.get(URL, timeout=20)
+            if debug: print("DEBUG: Paso 1 - Obteniendo cookie de sesión...")
+            # Visita inicial para obtener cookies
+            response_get = s.get(URL, timeout=20)
+            if response_get.status_code != 200:
+                 print(f"Error al obtener página inicial. Código: {response_get.status_code}")
+                 return []
+            if debug: print("DEBUG: Cookie de sesión obtenida.")
 
-            mapa_tipo = {'TODOS': '0', 'FAENA': '1', 'INVERNADA': '2'}
+            # --- Modificado: Payload siempre para FAENA (LisTipo='1') ---
             payload = {
-                'txtFechaIni': fecha_consulta, 'txtFechaFin': fecha_consulta,
-                'LisTipo': mapa_tipo.get(tipo_hacienda, '0'), 'Submit': 'BUSCAR'
+                'txtFechaIni': fecha_inicio_str, 
+                'txtFechaFin': fecha_fin_str,
+                'LisTipo': '1', # Código para FAENA
+                'Submit': 'BUSCAR' 
             }
             
+            if debug: print(f"DEBUG: Paso 2 - Enviando POST con payload: {payload}")
             response_post = s.post(URL, data=payload, timeout=20)
 
             if response_post.status_code == 200:
@@ -54,74 +71,83 @@ def scrape_mag(fecha_consulta, tipo_hacienda='TODOS', debug=False):
                 soup = BeautifulSoup(response_post.text, 'html.parser')
                 
                 tabla_datos = None
+                # Buscar tabla por contenido ("Categoría")
                 for table in soup.find_all('table'):
-                    if table.find(string=re.compile(r'Categoría')):
+                    header_row = table.find('tr')
+                    if header_row and header_row.find(string=re.compile(r'Categor.a')): # Usamos regex flexible
                         tabla_datos = table
-                        if debug: print("DEBUG: ¡Tabla de datos encontrada por el encabezado 'Categoría'!")
+                        if debug: print("DEBUG: ¡Tabla de datos encontrada por encabezado!")
                         break
                 
                 if tabla_datos:
                     filas = tabla_datos.find_all('tr')
-                    if debug: print(f"DEBUG: ¡Éxito! Se encontraron {len(filas)} filas en total.")
+                    if debug: print(f"DEBUG: Se encontraron {len(filas)} filas en total.")
 
-                    for fila in filas:
+                    for fila_idx, fila in enumerate(filas):
+                         # Evitar filas de encabezado (podrían ser varias en esta tabla)
+                        if fila.find('th') or fila_idx < 2: # Si tiene <th> o es de las primeras 2, probablemente es header
+                            if debug: print(f"DEBUG: Fila {fila_idx+1} ignorada (posible encabezado).")
+                            continue
+                            
                         celdas_texto = [td.get_text(strip=True) for td in fila.find_all('td')]
                         
-                        # Aceptamos filas con 11 o 12 celdas.
-                        # Nos aseguramos de que la segunda celda tenga contenido y no sea el pie de página.
-                        if len(celdas_texto) >= 11 and celdas_texto[1] and 'Totales' not in celdas_texto[1]:
+                        # Ajustar condición al número real de columnas de datos (excluyendo vacía inicial)
+                        if len(celdas_texto) >= 11 and celdas_texto[1] and 'Totales' not in celdas_texto[1]: 
                             if debug: print(f"DEBUG: Procesando fila válida: {celdas_texto[1]}")
                             
-                            # Rellenamos con '' si faltan celdas, para evitar errores de índice
-                            while len(celdas_texto) < 12:
-                                celdas_texto.append('')
+                            while len(celdas_texto) < 12: celdas_texto.append('') # Asegurar 12 elementos
                                 
                             registro = {
-                                'fuente': 'MAG_Analitico',
-                                'fecha_consulta': fecha_consulta,
-                                'tipo_hacienda': tipo_hacienda,
-                                'categoria_original': celdas_texto[1],
-                                'raza': celdas_texto[2],
+                                'fuente': 'MAG_Faena', # <-- Modificado
+                                'fecha_consulta_inicio': fecha_inicio_str,
+                                'fecha_consulta_fin': fecha_fin_str,
+                                'tipo_hacienda': tipo_hacienda_fijo, # <-- Modificado
+                                'categoria_original': celdas_texto[1], 'raza': celdas_texto[2], 
                                 'rango_peso': celdas_texto[3],
-                                'precio_max_kg': limpiar_numero(celdas_texto[4]),
+                                'precio_max_kg': limpiar_numero(celdas_texto[4]), 
                                 'precio_min_kg': limpiar_numero(celdas_texto[5]),
                                 'precio_promedio_kg': limpiar_numero(celdas_texto[6]),
-                                'precio_promedio_cabeza': limpiar_numero(celdas_texto[7]),
+                                # 'precio_promedio_cabeza': limpiar_numero(celdas_texto[7]), # Eliminado según BBDD
                                 'cabezas': int(limpiar_numero(celdas_texto[8])),
                                 'kilos_total': int(limpiar_numero(celdas_texto[9])),
-                                'kilos_promedio_cabeza': int(limpiar_numero(celdas_texto[10])),
+                                # 'kilos_promedio_cabeza': int(limpiar_numero(celdas_texto[10])), # Eliminado según BBDD
                                 'importe_total': limpiar_numero(celdas_texto[11])
                             }
                             datos_mag.append(registro)
+                        elif debug and celdas_texto and celdas_texto[1]: # No imprimir warnings para filas vacías
+                             print(f"DEBUG: Fila ignorada (no cumple criterios): {celdas_texto}")
                 else:
                     print("ADVERTENCIA: No se encontró la tabla de resumen en el HTML final.")
-                    with open("debug_output.html", "w", encoding="utf-8") as f: f.write(response_post.text)
-                    print(">>> Se ha guardado la respuesta HTML en 'debug_output.html' para análisis.")
+                    # Guardar HTML para depuración si falla la búsqueda de tabla
+                    # with open("debug_output_mag_faena.html", "w", encoding="utf-8") as f: f.write(response_post.text)
+                    # print(">>> Se ha guardado la respuesta HTML en 'debug_output_mag_faena.html'.")
             else:
                 print(f"Error en la petición POST. Código de estado: {response_post.status_code}")
 
     except requests.RequestException as e:
-        print(f"Error de conexión al scrapear MAG: {e}")
+        print(f"Error de conexión al scrapear MAG Faena: {e}")
+    except Exception as e:
+        print(f"Error inesperado al procesar MAG Faena: {e}")
+        import traceback
+        traceback.print_exc()
 
-    print(f"Scraper MAG finalizado. Se encontraron {len(datos_mag)} registros.")
+    print(f"Scraper MAG ({tipo_hacienda_fijo}) finalizado. Se encontraron {len(datos_mag)} registros.")
     return datos_mag
-
 
 # --- Bloque para probar este script individualmente ---
 if __name__ == "__main__":
-    # Cambiamos los parámetros para una nueva prueba
-    fecha_prueba = "21/10/2025"  # Un jueves
-    tipo_prueba = "TODOS"
+    fecha_prueba = "17/10/2025" # Viernes
+    print(f"--- Probando scraper MAG (Solo Faena) para fecha: {fecha_prueba} ---")
     
-    print(f"--- Probando scraper para fecha: {fecha_prueba} y tipo: {tipo_prueba} ---")
-    
-    datos = scrape_mag(fecha_prueba, tipo_hacienda=tipo_prueba, debug=False)
+    # Llamamos a la función específica (ahora solo hay una)
+    datos = scrape_mag_faena(fecha_prueba, fecha_prueba, debug=True) 
     
     if datos:
-        print(f"\n--- Registros Extraídos de MAG ({fecha_prueba} - {tipo_prueba}) ---")
-        # Imprimimos todos los registros encontrados para esta prueba
-        for fila in datos:
-            print(fila)
+        print(f"\n--- Primeros 5 Registros Extraídos de MAG (Faena - {fecha_prueba}) ---")
+        for fila in datos[:5]:
+            print("-" * 20)
+            for key, value in fila.items():
+                 print(f"  {key}: {value}")
     else:
-        print("\nNo se encontraron datos para la selección.")
+        print("\nNo se encontraron datos.")
 
