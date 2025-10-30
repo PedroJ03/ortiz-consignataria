@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Precios Invernada - {{ fecha_reporte }}</title>
+    <style>
+        /* --- Fuentes y Configuración de Página (Idéntico a MAG) --- */
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Oswald:wght@400;500;700&display=swap');
+
+        @page {
+            size: A4;
+            margin: 0; 
+
+            @bottom-center {
+                content: "Ortiz y Cía. Consignatarios — Instagram: @ortiz.consignatarios - Wpp (2262) 508401 | Página " counter(page) "/" counter(pages); 
+                font-family: 'Lato', sans-serif;
+                font-size: 7.5pt; 
+                color: #FFFFFF; 
+                background-color: #00204a; 
+                vertical-align: middle; 
+                line-height: 1.5cm;
+                padding: 0 1.5cm; 
+                height: 1.5cm; 
+                width: 100%; 
+                box-sizing: border-box; 
+                text-align: center; 
+            }
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            font-size: 8.5pt;
+            line-height: 1.4;
+            color: #333; 
+            margin: 0; 
+            background-color: #f4f6f8; 
+        }
+
+        .container {
+             padding: 0 1.5cm 2.0cm 1.5cm; 
+             position: relative;
+             z-index: 1;
+        }
+
+        .header {
+            height: auto; 
+            min-height: 5cm; 
+            background-color: #ffffff;
+            padding: 0.1cm 0.2cm; 
+            box-sizing: border-box;
+            border-bottom: 6px solid #00204a; 
+            display: flex;
+            align-items: center; 
+            justify-content: flex-start; 
+            gap: 0.4cm; 
+            margin-bottom: 0.1cm; 
+        }
+        .logo {
+            max-width: 5.5cm; 
+            max-height: 5.5cm; 
+            height: auto;
+            width: auto;
+            flex-shrink: 0; 
+        }
+        .header-text {
+            text-align: left;
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .header h1 {
+            font-family: 'Oswald', sans-serif;
+            color: #00204a;
+            margin: 0 0 5px 0; 
+            font-size: 32pt; 
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.1; 
+        }
+        .header p.subtitle {
+            margin: 0 0 8px 0; 
+            font-size: 13pt; 
+            color: #333; 
+            font-weight: 400;
+        }
+        .header .tipo-hacienda {
+            font-family: 'Oswald', sans-serif;
+            font-size: 14pt;
+            color: #cbd630;
+            padding: 0px 4px; 
+            display: flex; 
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 4px; 
+            letter-spacing: 0.8px;
+        }
+        .top-info {
+            font-size: 8pt; 
+            color: #00204a; 
+            font-weight: 700; 
+            margin-top: 10px; 
+            letter-spacing: 0.4px;
+            text-align: left;
+            border-top: 1px solid #eee; 
+            padding-top: 8px; 
+        }
+
+        /* --- Bloques de Categoría (Idéntico a MAG) --- */
+        .category-block { 
+            margin-top: 6mm; 
+            border: 1px solid #dbe1e8; 
+            background-color: #ffffff; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            box-shadow: 0 3px 8px rgba(0, 32, 74, 0.06); 
+        }
+        .category-header { 
+            background-color: #00204a; 
+            padding: 9px 15px; 
+        }
+        .category-header h2 { 
+            font-family: 'Oswald', sans-serif; 
+            margin: 0; 
+            font-size: 14pt; 
+            font-weight: 500; 
+            color: #FFFFFF; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+        
+        /* --- NUEVO: Tabla simple para Invernada --- */
+        .invernada-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .invernada-table th {
+            background-color: #f8f9fa;
+            color: #343a40;
+            font-family: 'Lato', sans-serif;
+            font-weight: 700;
+            text-align: left;
+            border-bottom: 1px solid #adb5bd;
+            padding: 9px 10px;
+            font-size: 9pt;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .invernada-table td {
+            border-bottom: 1px solid #eef1f4;
+            padding: 9px 10px;
+            text-align: left;
+            vertical-align: middle;
+            font-size: 11pt;
+        }
+        .invernada-table tr:last-child td {
+             border-bottom: none;
+        }
+        
+        /* --- Estilos para Variación (La "Impronta Propia") --- */
+        .number {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            font-weight: 700;
+        }
+        .number.prom {
+             color: #00204a; /* Precio promedio en azul */
+             font-size: 11pt;
+        }
+        .variation-positive {
+            color: #28a745; /* Verde */
+            font-weight: 700;
+        }
+        .variation-positive::before {
+            content: '▲ '; /* Flecha arriba */
+            margin-right: 2px;
+        }
+        .variation-negative {
+            color: #dc3545; /* Rojo */
+            font-weight: 700;
+        }
+        .variation-negative::before {
+            content: '▼ '; /* Flecha abajo */
+            margin-right: 2px;
+        }
+        .variation-neutral {
+            color: #6c757d; /* Gris */
+            font-weight: 400;
+        }
+
+        /* --- Mensaje 'Sin Datos' --- */
+        .no-data { text-align: center; color: #6c757d; font-style: italic; padding: 30px 15px; background-color: #fff;}
+        .no-data p { margin: 0; }
+
+    </style>
+</head>
+<body>
+    {# --- Header (Reutilizado) --- #}
+    <div class="header">
+        {% if logo_path %}
+            <img src="{{ logo_path }}" alt="Logo Consignataria Ortiz" class="logo">
+        {% endif %}
+        <div class="header-text">
+            <h1>Reporte de Precios</h1>
+            {# --- Títulos específicos para Invernada --- #}
+            <p class="subtitle">{{ fuente }} - Semana del {{ fecha_reporte }} al {{ fecha_reporte_fin }}</p>
+            <div class="tipo-hacienda">Tipo: INVERNADA</div>
+            <div class="top-info">
+                Ortiz y Cía. Consignatarios — Instagram: @ortiz.consignatarios — Wpp (2262) 508401
+            </div>
+        </div>
+    </div>
+
+    {# --- Contenido Principal --- #}
+    <div class="container">
+        {% if datos %}
+            {# Agrupamos por el 'tipo_hacienda' (MACHOS, HEMBRAS, VIENTRES) #}
+            {% for tipo, items_grupo in datos | groupby('tipo_hacienda') %}
+                <div class="category-block">
+                    <div class="category-header">
+                        {# Limpiamos el nombre del grupo (ej. INVERNADA_MACHOS -> MACHOS) #}
+                        <h2>{{ tipo.replace('INVERNADA_', '') }}</h2>
+                    </div>
+                    
+                    {# --- Tabla Específica para Invernada --- #}
+                    <table class="invernada-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Categoría</th>
+                                <th class="number">Cabezas</th>
+                                <th class="number">Prom $/Kg</th>
+                                <th class="number">Variación Semanal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fila in items_grupo %}
+                            <tr>
+                                <td>{{ fila.categoria_original or 'N/A' }}</td>
+                                <td class="number">{{ "{:,}".format(fila.cabezas|int) if fila.cabezas is not none else '-' }}</td>
+                                <td class="number prom">{{ "%.2f"|format(fila.precio_promedio_kg) if fila.precio_promedio_kg is not none else '-' }}</td>
+                                
+                                {# --- Lógica de color para Variación --- #}
+                                <td class="number 
+                                    {% if fila.variacion_semanal_precio > 0 %}
+                                        variation-positive
+                                    {% elif fila.variacion_semanal_precio < 0 %}
+                                        variation-negative
+                                    {% else %}
+                                        variation-neutral
+                                    {% endif %}
+                                ">
+                                    {{ "%.2f"|format(fila.variacion_semanal_precio) if fila.variacion_semanal_precio is not none else '-' }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        {% else %}
+             <div class="no-data"> 
+                 <p>No se encontraron datos de Invernada para esta semana.</p> 
+             </div> 
+        {% endif %}
+    </div> 
+</body>
+</html>
