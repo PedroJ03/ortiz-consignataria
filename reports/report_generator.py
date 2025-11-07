@@ -57,13 +57,11 @@ def generate_pdf_report(data, filename="reporte_precios.pdf", template_name="rep
             context.update({
                 'fecha_reporte': first_row.get('fecha_consulta_inicio', 'N/A'),
                 'fecha_reporte_fin': first_row.get('fecha_consulta_fin', 'N/A'),
-                'fuente': 'DeCampoACampo',
                 'tipo_hacienda': 'INVERNADA' # Título principal del header
             })
         else: # Asumir es la plantilla del MAG (report_template.html)
             context.update({
                 'fecha_reporte': first_row.get('fecha_consulta_inicio', 'N/A'),
-                'fuente': 'Mercado Agroganadero (MAG)',
                 'tipo_hacienda': first_row.get('tipo_hacienda', 'FAENA') # (ej. FAENA)
             })
         
