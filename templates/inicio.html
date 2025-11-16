@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Ortiz y Cía. Consignatarios{% endblock %}
+
+{% block styles %}
+<style>
+    .welcome-container {
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 32, 74, 0.08);
+        text-align: center;
+    }
+    .welcome-container h1 {
+        font-family: 'Oswald', sans-serif;
+        color: #00204a;
+        font-size: 28pt;
+    }
+    .welcome-container p {
+        font-size: 14pt;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+    .welcome-container .cta-button {
+        display: inline-block;
+        background-color: #00204a;
+        color: #fff;
+        padding: 12px 25px;
+        font-family: 'Oswald', sans-serif;
+        font-size: 16pt;
+        text-decoration: none;
+        text-transform: uppercase;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    .welcome-container .cta-button:hover {
+        background-color: #003366;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-container">
+    <h1>Bienvenido a la Plataforma Digital de Ortiz y Cía. Consignatarios</h1>
+    <p>
+        Acceda a la información y análisis de precios del mercado de hacienda.
+        Nuestra plataforma le permite visualizar datos históricos y reportes
+        actualizados de Faena e Invernada.
+    </p>
+    <a href="{{ url_for('dashboard') }}" class="cta-button">
+        Ver Gráficos de Precios
+    </a>
+</div>
+{% endblock %}

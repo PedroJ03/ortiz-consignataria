@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Precios - Ortiz y Cía. Consignatarios{% endblock %}
+
+{% block styles %}
+<style>
+    /* Contenedor principal del dashboard (la caja blanca) */
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 32, 74, 0.08);
+        overflow: hidden;
+    }
+    
+    /* Título H1 */
+    .dashboard-title {
+        font-family: 'Oswald', sans-serif;
+        font-size: 24pt;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #062541; /* CORREGIDO: Nuevo color de marca */
+        padding: 30px 30px 0 30px;
+        margin: 0;
+    }
+
+    /* Estilos de controles, gráfico, etc. */
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 20px 30px;
+        border-bottom: 1px solid #eee;
+        background-color: #fdfdfd;
+    }
+    .control-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .control-group label {
+        font-size: 8pt;
+        font-weight: 700;
+        color: #666;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+    .control-group input,
+    .control-group select {
+        font-family: 'Lato', sans-serif;
+        font-size: 10pt;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+    .control-group.hidden {
+        display: none;
+    }
+    .chart-container {
+        padding: 30px;
+        position: relative; 
+        height: 450px;
+    }
+    #priceChart {
+        display: none;
+    }
+    #chartMessage {
+        text-align: center;
+        padding: 40px;
+        color: #888;
+        font-style: italic;
+    }
+    .spinner {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        margin-top: -20px;
+        margin-left: -20px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #062541; /* CORREGIDO: Nuevo color de marca */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #resetZoomBtn {
+        display: none;
+        position: absolute;
+        top: 10px;
+        right: 30px;
+        z-index: 10;
+        padding: 5px 10px;
+        font-size: 8pt;
+        font-weight: 700;
+        background-color: #f8f8f8;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    #resetZoomBtn:hover {
+        background-color: #eee;
+        border-color: #aaa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    <h1 class="dashboard-title">Gráfica de Precios</h1>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="dataType">Tipo de Hacienda</label>
+            <select id="dataType">
+                <option value="faena">Faena </option>
+                <option value="invernada">Invernada </option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="categoryFilter">Categoría</label>
+            <select id="categoryFilter">
+                <option value="">-- Todas las Categorías --</option>
+            </select>
+        </div>
+        <div class="control-group hidden" id="razaFilterGroup">
+            <label for="razaFilter">Raza</label>
+            <select id="razaFilter">
+                <option value="">-- Todas las Razas --</option>
+            </select>
+        </div>
+        <div class="control-group hidden" id="pesoFilterGroup">
+            <label for="pesoFilter">Rango de Peso</label>
+            <select id="pesoFilter">
+                <option value="">-- Todos los Pesos --</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="startDate">Fecha Inicio</label>
+            <input type="date" id="startDate" placeholder="DD/MM/YYYY">
+        </div>
+        <div class="control-group">
+            <label for="endDate">Fecha Fin</label>
+            <input type="date" id="endDate" placeholder="DD/MM/YYYY">
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <div class="spinner" id="loadingSpinner"></div>
+        <button id="resetZoomBtn">Resetear Zoom</button>
+        <canvas id="priceChart"></canvas>
+        <p id="chartMessage">Selecciona un rango de fechas para ver los datos.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- Referencias a elementos del DOM (sin cambios) ---
+    const dataTypeSelect = document.getElementById('dataType');
+    const categorySelect = document.getElementById('categoryFilter');
+    // ... (más referencias) ...
+    const chartCanvas = document.getElementById('priceChart');
+    const ctx = chartCanvas.getContext('2d');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const resetZoomBtn = document.getElementById('resetZoomBtn');
+    
+    let priceChart;
+    let allCategories = { faena: [], invernada: [] }; 
+
+    Chart.register(ChartZoom.default ? ChartZoom.default : ChartZoom);
+    
+    function initChart() {
+        if (priceChart) priceChart.destroy(); 
+        chartCanvas.style.display = 'block';
+        chartMessage.style.display = 'none';
+        loadingSpinner.style.display = 'none';
+        
+        priceChart = new Chart(ctx, {
+            type: 'line', 
+            data: {
+                labels: [], 
+                datasets: [{
+                    label: 'Precio Promedio $/Kg',
+                    data: [], 
+                    borderColor: '#062541', /* CORREGIDO: Nuevo color de marca */
+                    backgroundColor: 'rgba(6, 37, 65, 0.1)', /* CORREGIDO: Nuevo color RGB */
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1 
+                }]
+            },
+            options: {
+                // ... (Opciones de scales, plugins, etc. sin cambios) ...
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: { 
+                            callback: function(value) { 
+                                return '$' + value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+                            } 
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) {
+                                    label += '$' + context.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    zoom: {
+                        pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
+                        zoom: {
+                            wheel: { enabled: true },
+                            pinch: { enabled: true },
+                            mode: 'x',
+                            onZoomComplete: () => { resetZoomBtn.style.display = 'block'; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- (Resto de funciones JS sin cambios) ---
+
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/categorias');
+            if (!response.ok) throw new Error('No se pudieron cargar las categorías');
+            allCategories = await response.json();
+            updateCategoryFilter(); 
+        } catch (error) {
+            console.error("Error en loadCategories:", error);
+            chartMessage.textContent = 'Error al cargar filtros de categoría.';
+        }
+    }
+    
+    function updateCategoryFilter() {
+        const currentType = dataTypeSelect.value; 
+        const categories = allCategories[currentType] || [];
+        populateSelect(categorySelect, categories, 'Todas las Categorías');
+        toggleSubCategoryFilters();
+    }
+
+    function toggleSubCategoryFilters() {
+        const currentType = dataTypeSelect.value;
+        if (currentType === 'faena') {
+            loadSubCategories(); 
+        } else {
+            razaFilterGroup.classList.add('hidden');
+            pesoFilterGroup.classList.add('hidden');
+            populateSelect(razaFilter, [], 'Todas las Razas');
+            populateSelect(pesoFilter, [], 'Todos los Pesos');
+            fetchChartData();
+        }
+    }
+
+    async function loadSubCategories() {
+        const currentType = dataTypeSelect.value;
+        const currentCategory = categorySelect.value;
+        if (currentType !== 'faena' || !currentCategory) {
+            razaFilterGroup.classList.add('hidden');
+            pesoFilterGroup.classList.add('hidden');
+            populateSelect(razaFilter, [], 'Todas las Razas');
+            populateSelect(pesoFilter, [], 'Todos los Pesos');
+        } else {
+            try {
+                const response = await fetch(`/api/subcategorias?tipo=faena&categoria=${encodeURIComponent(currentCategory)}`);
+                if (!response.ok) throw new Error('No se pudieron cargar subcategorías');
+                const data = await response.json(); 
+                populateSelect(razaFilter, data.razas, 'Todas las Razas');
+                populateSelect(pesoFilter, data.pesos, 'Todos los Pesos');
+                razaFilterGroup.classList.remove('hidden');
+                pesoFilterGroup.classList.remove('hidden');
+            } catch (error) {
+                console.error("Error en loadSubCategories:", error);
+                razaFilterGroup.classList.add('hidden');
+                pesoFilterGroup.classList.add('hidden');
+            }
+        }
+        fetchChartData();
+    }
+
+    function populateSelect(selectElement, options, defaultOptionText) {
+        selectElement.innerHTML = ''; 
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = `-- ${defaultOptionText} --`;
+        selectElement.appendChild(defaultOption);
+        options.forEach(optionValue => {
+            const option = document.createElement('option');
+            option.value = optionValue;
+            option.textContent = optionValue;
+            selectElement.appendChild(option);
+        });
+    }
+    
+    async function fetchChartData() {
+        const type = dataTypeSelect.value;
+        const category = categorySelect.value;
+        const start = startDateInput.value;
+        const end = endDateInput.value;
+        const raza = razaFilter.value;
+        const rangoPeso = pesoFilter.value;
+
+        if (!start || !end) return; 
+        
+        loadingSpinner.style.display = 'block';
+        chartMessage.style.display = 'none';
+        if(priceChart) priceChart.destroy();
+        chartCanvas.style.display = 'none';
+        resetZoomBtn.style.display = 'none';
+
+        const params = new URLSearchParams({ start: start, end: end });
+        if (category) params.append('categoria', category);
+        if (raza) params.append('raza', raza);
+        if (rangoPeso) params.append('rango_peso', rangoPeso);
+        
+        let apiUrl = `/api/${type}?${params.toString()}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Error del servidor al buscar datos');
+            const data = await response.json();
+
+            if (data.length === 0) {
+                loadingSpinner.style.display = 'none';
+                chartMessage.textContent = 'No se encontraron datos para los filtros seleccionados.';
+                chartMessage.style.display = 'block';
+                return;
+            }
+
+            const labels = data.map(d => d.fecha_consulta || d.fecha_consulta_fin);
+            const prices = data.map(d => d.precio_promedio_kg);
+
+            initChart();
+            priceChart.data.labels = labels;
+            priceChart.data.datasets[0].data = prices;
+            
+            let label = "Precio Prom. $/Kg";
+            let specifics = [];
+            if (category) specifics.push(category);
+            if (raza) specifics.push(raza);
+            if (rangoPeso) specifics.push(rangoPeso + "kg");
+            if (specifics.length > 0) label += ` (${specifics.join(' - ')})`;
+            else label += ` (Promedio ${type})`;
+            priceChart.data.datasets[0].label = label;
+            
+            priceChart.update();
+            
+        } catch (error) {
+            console.error("Error en fetchChartData:", error);
+            loadingSpinner.style.display = 'none';
+            chartMessage.textContent = `Error al cargar los datos del gráfico.`;
+            chartMessage.style.display = 'block';
+        }
+    }
+
+    // --- Event Listeners (para carga automática) ---
+    dataTypeSelect.addEventListener('change', updateCategoryFilter);
+    categorySelect.addEventListener('change', loadSubCategories);
+    razaFilter.addEventListener('change', fetchChartData);
+    pesoFilter.addEventListener('change', fetchChartData);
+    
+    resetZoomBtn.addEventListener('click', () => {
+        if (priceChart) {
+            priceChart.resetZoom();
+            resetZoomBtn.style.display = 'none';
+        }
+    });
+
+    // --- Inicialización (con Flatpickr) ---
+    (function() {
+        const flatpickrConfig = {
+            altInput: true,
+            altFormat: "d/m/Y",
+            dateFormat: "Y-m-d",
+            locale: "es",
+            onClose: function(selectedDates, dateStr, instance) {
+                fetchChartData();
+            }
+        };
+
+        const today = new Date();
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(today.getMonth() - 1);
+        
+        flatpickr(startDateInput, { ...flatpickrConfig, defaultDate: oneMonthAgo });
+        flatpickr(endDateInput, { ...flatpickrConfig, defaultDate: today });
+        
+        loadCategories(); 
+    })();
+</script>
+{% endblock %}
