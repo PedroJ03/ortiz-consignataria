@@ -5,3 +5,5 @@ pytest
 Jinja2 
 WeasyPrint
 python-dotenv
+Flask
+Flask-Cors
