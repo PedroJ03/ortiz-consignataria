@@ -8,16 +8,19 @@ import sqlite3 # <-- RE-INTRODUCIDO
 # Cargar variables de entorno desde .env (si existe)
 load_dotenv()
 
-# Asegurar que los módulos del proyecto sean encontrables
-project_root = os.path.dirname(os.path.abspath(__file__))
+# 1. Encontrar la raíz del proyecto (un nivel arriba de 'data_pipeline')
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 2. Añadir la raíz al sys.path para que Python pueda encontrar 'shared_code'
 sys.path.insert(0, project_root)
+
 
 # Importar nuestros módulos
 try:
-    from scrapers import mag_scraper, campo_invernada_scraper # <-- NOMBRE CORREGIDO
-    from database import db_manager # <-- RE-INTRODUCIDO
-    from reports import report_generator
-    from utils import email_sender
+    from data_pipeline.scrapers import mag_scraper, cac_scraper # <-- NOMBRE CORREGIDO
+    from shared_code.database import db_manager # <-- RE-INTRODUCIDO
+    from data_pipeline.reports import report_generator
+    from data_pipeline.utils import email_sender
 except ModuleNotFoundError:
     print("Error: No se pudieron encontrar los módulos. Revisa __init__.py.")
     sys.exit(1)
@@ -67,7 +70,7 @@ def ejecutar_proceso_completo(fecha_consulta_str, debug=False):
 
         # 1b. Scraper DeCampoACampo (Invernada)
         print("\n--- Ejecutando scraper DeCampoACampo (Invernada) ---")
-        datos_campo_invernada = campo_invernada_scraper.scrape_invernada_campo(debug=debug)
+        datos_campo_invernada = cac_scraper.scrape_invernada_campo(debug=debug)
         if datos_campo_invernada:
             print(f"Scraper DeCampoACampo (Invernada) finalizado. Se encontraron {len(datos_campo_invernada)} registros.")
         else:

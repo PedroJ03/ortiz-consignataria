@@ -1,9 +1,0 @@
-requests
-beautifulsoup4
-pandas
-pytest
-Jinja2 
-WeasyPrint
-python-dotenv
-Flask
-Flask-Cors

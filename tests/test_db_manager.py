@@ -1,87 +1,104 @@
+import sys
+import os
 import pytest
 import sqlite3
-from database import db_manager
 from datetime import datetime
-import os
 
-# --- Práctica Profesional: Fixtures ---
-# Un "fixture" es una función que pytest ejecuta ANTES de cada prueba
-# que la pida. Es perfecto para configurar una BBDD limpia.
+# --- Configuración de sys.path (sin cambios) ---
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
-@pytest.fixture
+from shared_code.database import db_manager
+
+# --- Fixture (sin cambios) ---
+@pytest.fixture(scope="function")
 def db_conn():
-    """
-    Fixture de Pytest para crear una BBDD en memoria para cada prueba.
-    """
-    # Usamos ":memory:" para crear una BBDD temporal solo en RAM
-    conn = sqlite3.connect(":memory:")
-    
-    # 1. Configuración: Creamos la tabla
-    db_manager.crear_tabla(conn)
-    
-    # 2. "yield" entrega la conexión a la función de prueba
+    """Fixture que crea una conexión y se asegura de que las tablas existan."""
+    conn = sqlite3.connect(":memory:") 
+    conn.row_factory = sqlite3.Row
+    try:
+        db_manager.crear_tablas(conn) 
+        print("\n(Fixture: Tablas creadas en BBDD en memoria)")
+    except AttributeError as e:
+        if 'crear_tablas' in str(e):
+            pytest.fail("Error en el test: la función db_manager.crear_tablas() no se encontró.")
+        else:
+            raise e
     yield conn
-    
-    # 3. Desmontaje: Cerramos la conexión después de la prueba
     conn.close()
+    print("(Fixture: BBDD en memoria cerrada)")
 
-# --- Pruebas del Gestor de Base de Datos ---
+# --- Tests de crear e insertar (sin cambios) ---
 
 def test_crear_tabla(db_conn):
-    """
-    Prueba que la función crear_tabla realmente crea la tabla 'precios'.
-    """
-    print("Ejecutando: test_crear_tabla")
+    print("\nEjecutando: test_crear_tabla")
     cursor = db_conn.cursor()
-    
-    # Intentamos consultar el esquema de la tabla 'precios'
     try:
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='precios'")
-        tabla = cursor.fetchone()
-        assert tabla is not None, "La tabla 'precios' no fue creada."
-        assert tabla[0] == "precios"
-        
-        # Verificamos que se creó el índice
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_fecha_consulta'")
-        indice = cursor.fetchone()
-        assert indice is not None, "El índice 'idx_fecha_consulta' no fue creado."
-
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='faena'")
+        assert cursor.fetchone() is not None, "Tabla 'faena' no fue creada"
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='invernada'")
+        assert cursor.fetchone() is not None, "Tabla 'invernada' no fue creada"
+        print("Test de creación de tablas exitoso.")
     except sqlite3.Error as e:
-        pytest.fail(f"La consulta de la tabla falló: {e}")
+        assert False, f"Error de SQLite al verificar tablas: {e}"
 
 def test_insertar_datos_exitoso(db_conn):
-    """
-    Prueba que insertar_datos funciona y guarda los datos correctamente.
-    """
-    print("Ejecutando: test_insertar_datos_exitoso")
-    datos_prueba = [{
-        'fecha_consulta': '20/10/2025', 'fuente': 'Prueba', 'tipo_hacienda': 'TODOS',
-        'categoria_original': 'NOVILLOS TEST', 'raza': 'MESTIZO', 'rango_peso': '400-430',
-        'precio_max_kg': 3000.0, 'precio_min_kg': 2800.0, 'precio_promedio_kg': 2900.0,
-        'cabezas': 50, 'kilos_total': 21000, 'importe_total': 60900000.0
-    }]
+    """Prueba una inserción exitosa en la tabla 'faena'."""
+    print("\nEjecutando: test_insertar_datos_exitoso (corregido)")
     
-    registros_insertados = db_manager.insertar_datos(db_conn, datos_prueba)
+    datos_ejemplo = [
+        {'fecha_consulta_inicio': '17/11/2025', 'categoria_original': 'NOVILLOS', 'precio_promedio_kg': 1000}
+    ]
+    count = db_manager.insertar_datos_faena(db_conn, datos_ejemplo)
+    assert count == 1, "db_manager.insertar_datos_faena debería haber devuelto 1"
     
-    # Afirmamos que la función reportó 1 inserción
-    assert registros_insertados == 1
-    
-    # Verificamos que los datos están realmente en la BBDD
     cursor = db_conn.cursor()
-    cursor.execute("SELECT * FROM precios WHERE categoria_original = 'NOVILLOS TEST'")
-    fila = cursor.fetchone()
     
-    assert fila is not None, "No se encontró el registro insertado."
-    assert fila[5] == "NOVILLOS TEST" # Columna categoria_original
-    assert fila[11] == 50 # Columna cabezas
+    # CORREGIDO: Buscar la fecha en el formato que realmente se guarda (DD/MM/YYYY)
+    cursor.execute("SELECT * FROM faena WHERE fecha_consulta = '17/11/2025'")
+    
+    resultado = cursor.fetchone()
+    assert resultado is not None, "El SELECT no encontró la fila que acabamos de insertar."
+    assert resultado['categoria_original'] == 'NOVILLOS'
+    print("Test de inserción exitosa completado.")
 
 def test_insertar_datos_vacios(db_conn):
-    """
-    Prueba que la función maneja correctamente una lista vacía.
-    """
-    print("Ejecutando: test_insertar_datos_vacios")
-    registros_insertados = db_manager.insertar_datos(db_conn, [])
-    
-    # Afirmamos que no se insertó nada
-    assert registros_insertados == 0
+    print("\nEjecutando: test_insertar_datos_vacios")
+    count = db_manager.insertar_datos_faena(db_conn, [])
+    assert count == 0
+    print("Test de inserción vacía completado.")
 
+# --- ========================================== ---
+# --- INICIO DE CORRECCIÓN (no such table / IntegrityError) ---
+# --- ========================================== ---
+def test_get_faena_historico_formato_fecha(db_conn):
+    """Prueba que get_faena_historico funciona con la conexión en memoria."""
+    print("\nEjecutando: test_get_faena_historico_formato_fecha (corregido)")
+    
+    try:
+        # 1. Insertar datos de prueba en la BBDD en memoria
+        # (Nota: insertar_datos_faena ya convierte '15/01/2025' a '2025-01-15')
+        datos_prueba = [{
+            'fecha_consulta_inicio': '15/01/2025', 
+            'categoria_original': 'NOVILLOS', 
+            'precio_promedio_kg': 123
+        }]
+        db_manager.insertar_datos_faena(db_conn, datos_prueba)
+        
+    except sqlite3.Error as e:
+        assert False, f"La inserción de prueba falló: {e}"
+
+    try:
+        # 2. Llamar a la función, pasándole la conexión de la fixture
+        datos = db_manager.get_faena_historico(
+            db_conn, # <-- CORREGIDO: Pasar la conexión en memoria
+            '2025-01-01',
+            '2025-01-31',
+            'NOVILLOS'
+        )
+        assert isinstance(datos, list)
+        assert len(datos) == 1, "La consulta SUBSTR no encontró el dato"
+        print("Test de consulta (get_faena_historico) exitoso.")
+    except Exception as e:
+        assert False, f"Consulta de get_faena_historico falló: {e}"
+# --- FIN DE CORRECCIÓN ---

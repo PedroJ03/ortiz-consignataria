@@ -14,18 +14,18 @@
         overflow: hidden;
     }
     
-    /* Título H1 */
+    /* Título H1 simple */
     .dashboard-title {
         font-family: 'Oswald', sans-serif;
         font-size: 24pt;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: #062541; /* CORREGIDO: Nuevo color de marca */
+        color: #062541; /* Color de marca */
         padding: 30px 30px 0 30px;
         margin: 0;
     }
 
-    /* Estilos de controles, gráfico, etc. */
+    /* Estilos de controles, gráfico, spinner, etc. */
     .controls {
         display: flex;
         flex-wrap: wrap;
@@ -81,7 +81,7 @@
         margin-top: -20px;
         margin-left: -20px;
         border: 4px solid #f3f3f3;
-        border-top: 4px solid #062541; /* CORREGIDO: Nuevo color de marca */
+        border-top: 4px solid #062541; /* Color de marca */
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
@@ -116,6 +116,7 @@
     
     <h1 class="dashboard-title">Gráfica de Precios</h1>
 
+    <!-- Filtros (sin cambios) -->
     <div class="controls">
         <div class="control-group">
             <label for="dataType">Tipo de Hacienda</label>
@@ -152,6 +153,7 @@
         </div>
     </div>
 
+    <!-- Contenedor del Gráfico (sin cambios) -->
     <div class="chart-container">
         <div class="spinner" id="loadingSpinner"></div>
         <button id="resetZoomBtn">Resetear Zoom</button>
@@ -161,21 +163,43 @@
 </div>
 {% endblock %}
 
+<!-- ========================================== -->
+<!-- --- SCRIPTS (CORREGIDOS) --- -->
+<!-- ========================================== -->
 {% block scripts %}
 <script>
-    // --- Referencias a elementos del DOM (sin cambios) ---
+    // --- ========================================== ---
+    // --- INICIO DE CORRECCIÓN (ReferenceError) ---
+    // --- ========================================== ---
+    
+    // --- Referencias a elementos del DOM ---
     const dataTypeSelect = document.getElementById('dataType');
     const categorySelect = document.getElementById('categoryFilter');
-    // ... (más referencias) ...
+    const razaFilterGroup = document.getElementById('razaFilterGroup');
+    const razaFilter = document.getElementById('razaFilter');
+    const pesoFilterGroup = document.getElementById('pesoFilterGroup');
+    const pesoFilter = document.getElementById('pesoFilter');
+    
+    // --- ¡ESTAS LÍNEAS FALTABAN! ---
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    // --- 
+    
+    const chartMessage = document.getElementById('chartMessage');
     const chartCanvas = document.getElementById('priceChart');
     const ctx = chartCanvas.getContext('2d');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const resetZoomBtn = document.getElementById('resetZoomBtn');
     
+    // --- FIN DE CORRECCIÓN ---
+    
     let priceChart;
     let allCategories = { faena: [], invernada: [] }; 
 
+    // Registrar el plugin de Zoom
     Chart.register(ChartZoom.default ? ChartZoom.default : ChartZoom);
+
+    // --- (Resto de funciones JS sin cambios) ---
     
     function initChart() {
         if (priceChart) priceChart.destroy(); 
@@ -190,15 +214,14 @@
                 datasets: [{
                     label: 'Precio Promedio $/Kg',
                     data: [], 
-                    borderColor: '#062541', /* CORREGIDO: Nuevo color de marca */
-                    backgroundColor: 'rgba(6, 37, 65, 0.1)', /* CORREGIDO: Nuevo color RGB */
+                    borderColor: '#062541', // Color de marca
+                    backgroundColor: 'rgba(6, 37, 65, 0.1)', // Color de marca
                     borderWidth: 2,
                     fill: true,
                     tension: 0.1 
                 }]
             },
             options: {
-                // ... (Opciones de scales, plugins, etc. sin cambios) ...
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
@@ -237,8 +260,6 @@
             }
         });
     }
-
-    // --- (Resto de funciones JS sin cambios) ---
 
     async function loadCategories() {
         try {
@@ -315,8 +336,11 @@
     async function fetchChartData() {
         const type = dataTypeSelect.value;
         const category = categorySelect.value;
-        const start = startDateInput.value;
+        
+        // ¡Esta línea ahora funciona!
+        const start = startDateInput.value; 
         const end = endDateInput.value;
+        
         const raza = razaFilter.value;
         const rangoPeso = pesoFilter.value;
 
@@ -402,6 +426,7 @@
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(today.getMonth() - 1);
         
+        // ¡Esta línea ahora funciona!
         flatpickr(startDateInput, { ...flatpickrConfig, defaultDate: oneMonthAgo });
         flatpickr(endDateInput, { ...flatpickrConfig, defaultDate: today });
         

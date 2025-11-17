@@ -3,26 +3,32 @@ import os
 import time
 from datetime import datetime, timedelta
 
-# --- Configuración de Ruta ---
-# Añadir la raíz del proyecto al sys.path para encontrar los módulos
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# --- ========================================== ---
+# --- INICIO DE CORRECCIÓN DE ARQUITECTURA ---
+# --- ========================================== ---
+
+# 1. Corregir el 'sys.path'
+# __file__ está en .../data_pipeline/utils/backfill_faena.py
+# Necesitamos subir 3 niveles para llegar a la raíz 'ortiz-consignataria'
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
 try:
-    from scrapers import mag_scraper
-    from database import db_manager
-except ModuleNotFoundError:
-    print("Error: No se pudieron encontrar los módulos 'scrapers' o 'database'.")
-    print("Asegúrate de ejecutar este script desde la raíz del proyecto o de que los __init__.py estén en su lugar.")
+    # 2. Corregir las importaciones
+    from data_pipeline.scrapers import mag_scraper
+    from shared_code.database import db_manager
+except ModuleNotFoundError as e:
+    print(f"Error: No se pudieron encontrar los módulos. Detalle: {e}")
+    print("Asegúrate de que 'shared_code' y 'data_pipeline' existan en la raíz.")
     sys.exit(1)
 
-# --- Constantes de Configuración ---
-# Rango de fechas para el backfill. Por defecto, todo el año 2025 hasta hoy.
+# --- FIN DE CORRECCIÓN DE ARQUITECTURA ---
+
+
+# --- Constantes de Configuración (Sin cambios) ---
 START_DATE = datetime(2025, 1, 1)
 END_DATE = datetime.now() 
-# Días de la semana a procesar (Lunes=0, Martes=1, ... Viernes=4)
 DIAS_HABILES = [1, 2, 3, 4] # Martes a Viernes
-# Pausa entre cada solicitud (en segundos) para no sobrecargar el servidor
 PAUSA_ENTRE_SOLICITUDES = 1.5 
 
 def generar_rango_fechas(start, end):
@@ -36,7 +42,6 @@ def generar_rango_fechas(start, end):
     current_date = start
     
     while current_date <= end:
-        # .weekday() devuelve 0 para Lunes, 1 para Martes, etc.
         if current_date.weekday() in DIAS_HABILES:
             fechas_a_procesar.append(current_date.strftime("%d/%m/%Y"))
         current_date += timedelta(days=1)
@@ -54,12 +59,12 @@ def ejecutar_backfill(lista_fechas):
     dias_con_datos = 0
 
     try:
+        # La ruta en db_manager (DB_PATH) ya es correcta (apunta a la raíz)
         conn = db_manager.get_db_connection()
         if not conn:
             print("ERROR FATAL: No se pudo conectar a la base de datos.")
             return
 
-        # Asegurarse de que las tablas existan antes de empezar
         db_manager.crear_tablas(conn)
         
         total_dias = len(lista_fechas)
@@ -68,14 +73,14 @@ def ejecutar_backfill(lista_fechas):
             print(f"\n--- Procesando día {i+1}/{total_dias}: {fecha_str} ---")
             
             try:
-                # 1. Scrapear los datos para la fecha
+                # 1. Scrapear (Sigue siendo DD/MM/YYYY)
                 datos_dia = mag_scraper.scrape_mag_faena(fecha_str, fecha_str, debug=False)
                 
                 if datos_dia:
                     print(f"Se encontraron {len(datos_dia)} registros.")
                     dias_con_datos += 1
                     
-                    # 2. Insertar en la BBDD
+                    # 2. Insertar (db_manager ahora convierte DD/MM/YYYY a YYYY-MM-DD)
                     registros_insertados = db_manager.insertar_datos_faena(conn, datos_dia)
                     print(f"Éxito: Se insertaron {registros_insertados} nuevos registros.")
                     total_registros_insertados += registros_insertados
@@ -89,7 +94,6 @@ def ejecutar_backfill(lista_fechas):
                 print("Continuando con la siguiente fecha...")
 
             finally:
-                # 3. Pausa Respetuosa
                 print(f"Pausando {PAUSA_ENTRE_SOLICITUDES} segundos...")
                 time.sleep(PAUSA_ENTRE_SOLICITUDES)
 
@@ -119,9 +123,10 @@ if __name__ == "__main__":
     print(f"Estás a punto de ejecutar un script de backfill para {len(lista_fechas)} días.")
     print(f"Esto realizará {len(lista_fechas)} solicitudes al servidor de MAG.")
     print(f"Tiempo estimado (aprox): {len(lista_fechas) * PAUSA_ENTRE_SOLICITUDES / 60:.1f} minutos.")
-    print(f"Los datos se insertarán en: {db_manager.DB_PATH}")
     
-    # Práctica Profesional: Confirmación de seguridad
+    # La ruta en db_manager (DB_PATH) ya es correcta
+    print(f"Los datos se insertarán en: {db_manager.DB_PATH}") 
+    
     confirmacion = input("\n¿Estás seguro de que deseas continuar? (s/n): ").strip().lower()
     
     if confirmacion == 's':
