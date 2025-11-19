@@ -26,7 +26,7 @@ except ModuleNotFoundError as e:
 
 
 # --- Constantes de Configuración (Sin cambios) ---
-START_DATE = datetime(2025, 1, 1)
+START_DATE = datetime(2023, 1, 1)
 END_DATE = datetime.now() 
 DIAS_HABILES = [1, 2, 3, 4] # Martes a Viernes
 PAUSA_ENTRE_SOLICITUDES = 1.5 

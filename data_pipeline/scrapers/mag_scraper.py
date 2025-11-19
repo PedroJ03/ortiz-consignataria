@@ -1,153 +1,176 @@
 import requests
 from bs4 import BeautifulSoup
-import re
-from datetime import datetime
-import time # Para añadir pausa
+import time
 
-# Requerido por el bloque de prueba si se ejecuta solo
-from dotenv import load_dotenv
-load_dotenv() 
+# URL del formulario de consultas históricas
+URL_MAG_FORM = "https://www.mercadoagroganadero.com.ar/dll/hacienda6.dll/haciinfo000225"
 
 def limpiar_numero(texto_numero):
-    """
-    Función de ayuda para convertir un string de número (ej: "$1.234,56") a float.
-    Devuelve 0.0 si la conversión falla.
-    """
+    """Convierte string numérico argentino (1.234,56) a float."""
     if not texto_numero or not isinstance(texto_numero, str):
         return 0.0
     try:
-        texto_limpio = texto_numero.strip().replace('$', '')
+        # Eliminar símbolos y espacios
+        texto_limpio = texto_numero.strip().replace('$', '').replace(' ', '')
+        # Formato argentino: punto para miles, coma para decimales
         return float(texto_limpio.replace('.', '').replace(',', '.'))
     except (ValueError, TypeError):
         return 0.0
 
-# --- Modificado: Ya no necesita tipo_hacienda como parámetro ---
 def scrape_mag_faena(fecha_inicio_str, fecha_fin_str, debug=False):
     """
-    Scrapea la tabla de FAENA del MAG para las fechas especificadas,
-    obteniendo primero una sesión válida.
-    
-    :param fecha_inicio_str: Fecha de inicio en formato "DD/MM/YYYY".
-    :param fecha_fin_str: Fecha de fin en formato "DD/MM/YYYY".
-    :param debug: Si es True, imprime información detallada del proceso.
-    :return: Lista de diccionarios con los datos de FAENA.
+    Scraper robusto para MAG (Faena) v2.1.
+    Incluye captura de Importe Total.
     """
-    
-    URL = "https://www.mercadoagroganadero.com.ar/dll/hacienda6.dll/haciinfo000225"
-    HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0',
-        'Referer': URL
+    print(f"--- Consultando MAG para rango: {fecha_inicio_str} - {fecha_fin_str} ---")
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': URL_MAG_FORM,
+        'Origin': 'https://www.mercadoagroganadero.com.ar',
+        'Connection': 'keep-alive'
     }
-    
-    # --- Modificado: Siempre buscará FAENA ---
-    tipo_hacienda_fijo = 'FAENA' 
-    print(f"Iniciando scraper para MAG (Fechas: {fecha_inicio_str}-{fecha_fin_str}, Tipo: {tipo_hacienda_fijo})...")
-    datos_mag = []
+
+    datos_procesados = []
 
     try:
         with requests.Session() as s:
-            s.headers.update(HEADERS)
-            if debug: print("DEBUG: Paso 1 - Obteniendo cookie de sesión...")
-            # Visita inicial para obtener cookies
-            response_get = s.get(URL, timeout=20)
+            s.headers.update(headers)
+            
+            # --- PASO 1: GET para obtener tokens ---
+            if debug: print("1. Obteniendo formulario inicial...")
+            response_get = s.get(URL_MAG_FORM, timeout=15)
+            response_get.encoding = response_get.apparent_encoding
+            
             if response_get.status_code != 200:
-                 print(f"Error al obtener página inicial. Código: {response_get.status_code}")
-                 return []
-            if debug: print("DEBUG: Cookie de sesión obtenida.")
+                print(f"Error al acceder al formulario inicial: {response_get.status_code}")
+                return []
 
-            # --- Modificado: Payload siempre para FAENA (LisTipo='1') ---
+            soup_get = BeautifulSoup(response_get.text, 'html.parser')
+            
             payload = {
-                'txtFechaIni': fecha_inicio_str, 
+                'txtFechaIni': fecha_inicio_str,
                 'txtFechaFin': fecha_fin_str,
-                'LisTipo': '1', # Código para FAENA
-                'Submit': 'BUSCAR' 
+                'LisTipo': '1', # 1 = Faena
+                'OPCIONMENU': '',
+                'OPCIONSUBMENU': ''
             }
             
-            if debug: print(f"DEBUG: Paso 2 - Enviando POST con payload: {payload}")
-            response_post = s.post(URL, data=payload, timeout=20)
+            for hidden_name in ['ID', 'CP', 'USUARIO', 'FLASH']:
+                input_tag = soup_get.find('input', {'name': hidden_name})
+                if input_tag:
+                    payload[hidden_name] = input_tag.get('value', '')
+            
+            # --- PASO 2: POST con la consulta ---
+            if debug: print("2. Enviando consulta POST...")
+            time.sleep(1) 
 
-            if response_post.status_code == 200:
-                response_post.encoding = 'windows-1252'
-                soup = BeautifulSoup(response_post.text, 'html.parser')
+            response_post = s.post(URL_MAG_FORM, data=payload, timeout=30)
+            response_post.encoding = response_post.apparent_encoding 
+
+            if response_post.status_code != 200:
+                print(f"Error HTTP {response_post.status_code} en la consulta POST.")
+                return []
+
+            # --- PASO 3: Parseo ---
+            soup = BeautifulSoup(response_post.text, 'html.parser')
+
+            target_table = None
+            for table in soup.find_all('table'):
+                headers_text = table.get_text().lower()
+                if 'categor' in headers_text and 'prom' in headers_text:
+                    target_table = table
+                    break
+            
+            if not target_table:
+                print("ADVERTENCIA: No se encontró la tabla de resultados.")
+                return []
+
+            rows = target_table.find_all('tr')
+            
+            for row in rows:
+                cols = row.find_all('td')
+                cols_text = [c.get_text(strip=True) for c in cols]
                 
-                tabla_datos = None
-                # Buscar tabla por contenido ("Categoría")
-                for table in soup.find_all('table'):
-                    header_row = table.find('tr')
-                    if header_row and header_row.find(string=re.compile(r'Categor.a')): # Usamos regex flexible
-                        tabla_datos = table
-                        if debug: print("DEBUG: ¡Tabla de datos encontrada por encabezado!")
-                        break
+                # Estructura típica (puede variar, por eso usamos len):
+                # 0: (Vacio)
+                # 1: Categoría
+                # 2: Raza
+                # 3: Peso
+                # 4: Max
+                # 5: Min
+                # 6: Promedio
+                # 7: Mediana (a veces)
+                # 8: Cabezas
+                # 9: Kgs Total
+                # 10: Cab. Prom (a veces)
+                # 11: Importe Total (Última columna usualmente)
                 
-                if tabla_datos:
-                    filas = tabla_datos.find_all('tr')
-                    if debug: print(f"DEBUG: Se encontraron {len(filas)} filas en total.")
+                if len(cols_text) < 9: continue
+                
+                categoria = cols_text[1]
+                if not categoria or "Total" in categoria or "Categoría" in categoria:
+                    continue
 
-                    for fila_idx, fila in enumerate(filas):
-                         # Evitar filas de encabezado (podrían ser varias en esta tabla)
-                        if fila.find('th') or fila_idx < 2: # Si tiene <th> o es de las primeras 2, probablemente es header
-                            if debug: print(f"DEBUG: Fila {fila_idx+1} ignorada (posible encabezado).")
-                            continue
-                            
-                        celdas_texto = [td.get_text(strip=True) for td in fila.find_all('td')]
-                        
-                        # Ajustar condición al número real de columnas de datos (excluyendo vacía inicial)
-                        if len(celdas_texto) >= 11 and celdas_texto[1] and 'Totales' not in celdas_texto[1]: 
-                            if debug: print(f"DEBUG: Procesando fila válida: {celdas_texto[1]}")
-                            
-                            while len(celdas_texto) < 12: celdas_texto.append('') # Asegurar 12 elementos
-                                
-                            registro = {
-                                'fuente': 'MAG_Faena', # <-- Modificado
-                                'fecha_consulta_inicio': fecha_inicio_str,
-                                'fecha_consulta_fin': fecha_fin_str,
-                                'tipo_hacienda': tipo_hacienda_fijo, # <-- Modificado
-                                'categoria_original': celdas_texto[1], 'raza': celdas_texto[2], 
-                                'rango_peso': celdas_texto[3],
-                                'precio_max_kg': limpiar_numero(celdas_texto[4]), 
-                                'precio_min_kg': limpiar_numero(celdas_texto[5]),
-                                'precio_promedio_kg': limpiar_numero(celdas_texto[6]),
-                                # 'precio_promedio_cabeza': limpiar_numero(celdas_texto[7]), # Eliminado según BBDD
-                                'cabezas': int(limpiar_numero(celdas_texto[8])),
-                                'kilos_total': int(limpiar_numero(celdas_texto[9])),
-                                # 'kilos_promedio_cabeza': int(limpiar_numero(celdas_texto[10])), # Eliminado según BBDD
-                                'importe_total': limpiar_numero(celdas_texto[11])
-                            }
-                            datos_mag.append(registro)
-                        elif debug and celdas_texto and celdas_texto[1]: # No imprimir warnings para filas vacías
-                             print(f"DEBUG: Fila ignorada (no cumple criterios): {celdas_texto}")
-                else:
-                    print("ADVERTENCIA: No se encontró la tabla de resumen en el HTML final.")
-                    # Guardar HTML para depuración si falla la búsqueda de tabla
-                    # with open("debug_output_mag_faena.html", "w", encoding="utf-8") as f: f.write(response_post.text)
-                    # print(">>> Se ha guardado la respuesta HTML en 'debug_output_mag_faena.html'.")
-            else:
-                print(f"Error en la petición POST. Código de estado: {response_post.status_code}")
+                try:
+                    # Cabezas suele estar en la columna 8
+                    cabezas_idx = 8
+                    if not cols_text[cabezas_idx].replace('.','').isdigit():
+                         # Si no es un número, intentar buscar la columna correcta
+                         # (Heurística simple: buscar la primera columna entera > 0 desde la derecha)
+                         pass 
 
-    except requests.RequestException as e:
-        print(f"Error de conexión al scrapear MAG Faena: {e}")
+                    cabezas = int(limpiar_numero(cols_text[cabezas_idx]))
+                    if cabezas == 0: continue
+
+                    precio_prom = limpiar_numero(cols_text[6])
+                    
+                    # Intentar capturar Importe Total (usualmente la última columna con datos)
+                    # Probamos la col 11 (si existe), o la última
+                    importe_total = 0.0
+                    if len(cols_text) >= 12:
+                        importe_total = limpiar_numero(cols_text[11])
+                    elif len(cols_text) >= 10:
+                         # A veces está antes
+                         importe_total = limpiar_numero(cols_text[-1])
+
+                    registro = {
+                        'fecha_consulta_inicio': fecha_inicio_str,
+                        'tipo_hacienda': 'FAENA',
+                        'categoria_original': categoria,
+                        'raza': cols_text[2] if cols_text[2] else '',
+                        'rango_peso': cols_text[3] if cols_text[3] else '',
+                        'precio_min_kg': limpiar_numero(cols_text[5]),
+                        'precio_max_kg': limpiar_numero(cols_text[4]),
+                        'precio_promedio_kg': precio_prom,
+                        'cabezas': cabezas,
+                        'kilos_total': int(limpiar_numero(cols_text[9])),
+                        'importe_total': importe_total # <-- AHORA CAPTURADO
+                    }
+                    datos_procesados.append(registro)
+                    
+                except (ValueError, IndexError):
+                    continue 
+
     except Exception as e:
-        print(f"Error inesperado al procesar MAG Faena: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"Error en scraper MAG: {e}")
+        if debug:
+            import traceback
+            traceback.print_exc()
+        return []
 
-    print(f"Scraper MAG ({tipo_hacienda_fijo}) finalizado. Se encontraron {len(datos_mag)} registros.")
-    return datos_mag
+    return datos_procesados
 
-# --- Bloque para probar este script individualmente ---
+# Prueba rápida
 if __name__ == "__main__":
-    fecha_prueba = "17/10/2025" # Viernes
-    print(f"--- Probando scraper MAG (Solo Faena) para fecha: {fecha_prueba} ---")
+    # Usamos una fecha reciente hábil
+    fecha_test = "14/11/2025" 
+    print(f"Probando scraper para {fecha_test}...")
+    datos = scrape_mag_faena(fecha_test, fecha_test, debug=True)
     
-    # Llamamos a la función específica (ahora solo hay una)
-    datos = scrape_mag_faena(fecha_prueba, fecha_prueba, debug=True) 
-    
+    print(f"\nResultados: {len(datos)} registros encontrados.")
     if datos:
-        print(f"\n--- Primeros 5 Registros Extraídos de MAG (Faena - {fecha_prueba}) ---")
-        for fila in datos[:5]:
-            print("-" * 20)
-            for key, value in fila.items():
-                 print(f"  {key}: {value}")
-    else:
-        print("\nNo se encontraron datos.")
-
+        print("Primer registro completo:")
+        print(datos[0])
