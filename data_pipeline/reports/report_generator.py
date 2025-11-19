@@ -3,20 +3,23 @@ import pathlib
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-# Nota: Ya no importamos sqlite3 ni pandas
 
-# Práctica Profesional: Definir rutas robustas
-# __file__ es la ruta de este script (report_generator.py)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Carpeta /reports
-TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')     # Carpeta /reports/templates
-PROJECT_ROOT = os.path.dirname(BASE_DIR)              # Carpeta raíz /ortiz-consignataria
-OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'output')      # Carpeta /output
-STATIC_DIR = os.path.join(PROJECT_ROOT, 'static')      # Carpeta /static
+
+# 1. Directorio de este script (.../data_pipeline/reports)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 2. Raíz del Proyecto (.../ortiz-consignataria)
+# Subimos 2 niveles: reports -> data_pipeline -> RAÍZ
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+# 3. Rutas Específicas
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+# CORRECCIÓN: Los logos ahora están en web_app/static
+STATIC_DIR = os.path.join(PROJECT_ROOT, 'web_app', 'static')
+# La salida se guarda en data_pipeline/output
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'data_pipeline', 'output')
 
 # Asegurarse de que la carpeta de salida exista
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# --- fetch_latest_data() fue eliminada (ya no usamos BBDD) ---
 
 def generate_pdf_report(data, filename="reporte_precios.pdf", template_name="report_template.html"):
     """
@@ -32,16 +35,15 @@ def generate_pdf_report(data, filename="reporte_precios.pdf", template_name="rep
         env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
         template = env.get_template(template_name)
         
-        # --- Lógica de la Ruta del Logo ---
-        logo_filename = "logo_blanco.jpeg" # El nombre de tu logo
+        logo_filename = "logo_blanco.jpeg" 
         logo_abs_path = os.path.join(STATIC_DIR, 'images', logo_filename)
+        
         logo_uri = None
         if os.path.exists(logo_abs_path):
-            # Práctica Profesional: Convertir ruta de archivo a URI (file:///)
+            # Convertir a URI para que WeasyPrint lo entienda
             logo_uri = pathlib.Path(logo_abs_path).as_uri()
-            print(f"DEBUG: URI del logo encontrado: {logo_uri}")
         else:
-            print(f"ADVERTENCIA: No se encontró el archivo del logo en: {logo_abs_path}")
+            print(f"ADVERTENCIA: No se encontró el logo en: {logo_abs_path}")
 
         # --- Construcción del Contexto Dinámico ---
         first_row = data[0] # Usar el primer registro para datos comunes

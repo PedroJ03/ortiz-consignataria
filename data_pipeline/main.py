@@ -70,7 +70,7 @@ def ejecutar_proceso_completo(fecha_consulta_str, debug=False):
 
         # 1b. Scraper DeCampoACampo (Invernada)
         print("\n--- Ejecutando scraper DeCampoACampo (Invernada) ---")
-        datos_campo_invernada = cac_scraper.scrape_invernada_campo(debug=debug)
+        datos_campo_invernada = cac_scraper.scrape_invernada_diario(debug=debug)
         if datos_campo_invernada:
             print(f"Scraper DeCampoACampo (Invernada) finalizado. Se encontraron {len(datos_campo_invernada)} registros.")
         else:
@@ -81,13 +81,13 @@ def ejecutar_proceso_completo(fecha_consulta_str, debug=False):
         
         if datos_mag_faena:
             total_registros_faena_insertados = db_manager.insertar_datos_faena(conn, datos_mag_faena)
-            print(f"Éxito: Se insertaron {total_registros_faena_insertados} nuevos registros en 'faena_mag'.")
+            print(f"Éxito: Se insertaron {total_registros_faena_insertados} nuevos registros en 'faena'.")
         else:
             print("No hay datos de Faena para almacenar.")
             
         if datos_campo_invernada:
             total_registros_invernada_insertados = db_manager.insertar_datos_invernada(conn, datos_campo_invernada)
-            print(f"Éxito: Se insertaron {total_registros_invernada_insertados} nuevos registros en 'invernada_campo'.")
+            print(f"Éxito: Se insertaron {total_registros_invernada_insertados} nuevos registros en 'invernada'.")
         else:
             print("No hay datos de Invernada para almacenar.")
 
