@@ -2,278 +2,224 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte de Precios - {{ fecha_reporte }}</title>
+    <title>Reporte Faena - {{ fecha_reporte }}</title>
     <style>
-        /* --- Fuentes y Configuración de Página --- */
-        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Oswald:wght@400;500;700&display=swap');
-
         @page {
             size: A4;
-            margin: 0;
-
-            /* --- Footer (Sin cambios) --- */
+            margin: 1.5cm;
             @bottom-center {
-                content: "Ortiz y Cía. Consignatarios — Instagram: @ortiz.consignatarios - Wpp (2262) 508401 | Página " counter(page) "/" counter(pages);
+                content: "Página " counter(page) " de " counter(pages);
                 font-family: 'Lato', sans-serif;
-                font-size: 7.5pt;
-                color: #FFFFFF;
-                background-color: #00204a;
-                vertical-align: middle;
-                line-height: 1.5cm; /* Igual a la altura */
-                padding: 0 1.5cm;
-                height: 1.5cm;
-                width: 100%;
-                box-sizing: border-box;
-                text-align: center;
+                font-size: 9pt;
+                color: #666;
             }
         }
-
+        
         body {
             font-family: 'Lato', sans-serif;
-            font-size: 8.5pt;
-            line-height: 1.4;
             color: #333;
             margin: 0;
-            background-color: #f4f6f8;
+            font-size: 10pt;
         }
-
-        /* --- Contenedor Principal (Sin cambios) --- */
-        .container {
-             padding: 0 1.5cm 2.0cm 1.5cm; 
-             position: relative;
-             z-index: 1;
-        }
-
-        /* --- Header (SIN CAMBIOS) --- */
+        
+        /* HEADER UNIFICADO */
         .header {
-            height: auto; 
-            min-height: 5cm; 
-            background-color: #ffffff;
-            padding: 0.1cm 0.2cm; 
-            box-sizing: border-box;
-            border-bottom: 6px solid #00204a; 
+            margin-bottom: 30px;
+            border-bottom: 4px solid #cbd630; /* Amarillo Acento */
+            padding-bottom: 15px;
+        }
+        .header-content {
             display: flex;
-            align-items: center; 
-            justify-content: flex-start; 
-            gap: 0.4cm; 
-            margin-bottom: 0.1cm; 
+            justify-content: space-between;
+            align-items: flex-start;
         }
-        .logo {
-            max-width: 5.5cm; 
-            max-height: 5.5cm; 
-            height: auto;
-            width: auto;
-            flex-shrink: 0; 
+        
+        .brand-box {
+            flex: 1;
         }
-        .header-text {
-            text-align: left;
-            flex-grow: 1; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .header h1 {
+        .brand-box h1 {
             font-family: 'Oswald', sans-serif;
-            color: #00204a;
-            margin: 0 0 5px 0; 
-            font-size: 32pt; 
-            font-weight: 700;
+            font-size: 24pt;
+            color: #062541; /* Azul Marca */
+            margin: 0;
             text-transform: uppercase;
+            line-height: 1.1;
+        }
+        .brand-box h2 {
+            margin: 0;
+            font-size: 11pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #666;
             letter-spacing: 1px;
-            line-height: 1.1; 
         }
-        .header p.subtitle {
-            margin: 0 0 8px 0; 
-            font-size: 13pt; 
-            color: #333; 
-            font-weight: 400;
+        .contact-info {
+            font-size: 9pt;
+            color: #555;
+            margin-top: 6px;
+            font-weight: 500;
         }
-        .header .tipo-hacienda {
+
+        .meta-box {
+            text-align: right;
+            min-width: 200px;
+        }
+        .report-title {
             font-family: 'Oswald', sans-serif;
             font-size: 14pt;
-            color: #cbd630;
-            padding: 0px 4px; 
-            display: flex; 
-            font-weight: 700;
+            color: #062541;
             text-transform: uppercase;
-            border-radius: 4px; 
-            letter-spacing: 0.8px;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
-        .top-info {
-            font-size: 8pt; 
-            color: #00204a; 
-            font-weight: 700; 
-            margin-top: 10px; 
-            letter-spacing: 0.4px;
-            text-align: left;
-            border-top: 1px solid #eee; 
-            padding-top: 8px; 
+        .date-range {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #333;
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .badge {
+            display: inline-block;
+            margin-top: 5px;
+            background-color: #062541;
+            color: #fff;
+            padding: 3px 8px;
+            font-size: 8pt;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: bold;
         }
 
-        /* --- (Estilos de Tarjetas) --- */
-        .category-block { margin-top: 6mm; border: 1px solid #dbe1e8; background-color: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 3px 8px rgba(0, 32, 74, 0.06); }
-        .category-header { background-color: #00204a; padding: 9px 15px; }
-        .category-header h2 { font-family: 'Oswald', sans-serif; margin: 0; font-size: 14pt; font-weight: 500; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .data-item-container { padding: 5px 15px 10px 15px; }
-        
-        /* --- INICIO DE CAMBIOS (COMPACTO) --- */
-        .data-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start; 
-            padding: 6px 0; /* MODIFICADO: Antes 10px */
-            border-bottom: 1px dashed #e1e5ea; 
+        /* TABLAS (Estilo limpio) */
+        .category-section {
+            margin-bottom: 25px;
+            break-inside: avoid;
         }
-        /* --- FIN DE CAMBIOS --- */
+        .category-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 14pt;
+            color: #062541;
+            border-bottom: 2px solid #062541;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+        }
+        th {
+            text-align: right;
+            color: #666;
+            font-weight: 700;
+            font-size: 8pt;
+            text-transform: uppercase;
+            padding: 5px 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        th:first-child { text-align: left; }
+        
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            text-align: right;
+        }
+        td:first-child { 
+            text-align: left; 
+            font-weight: 700;
+            color: #062541;
+            width: 35%;
+        }
+        
+        .col-promedio {
+            font-weight: bold;
+            color: #000;
+            background-color: #f8fafc;
+        }
+        .col-volumen {
+            color: #555;
+        }
+        .raza-info { display: block; }
+        .peso-info { font-weight: normal; color: #777; font-size: 8.5pt; margin-left: 5px; }
 
-        .data-item:last-child { border-bottom: none; }
-        .item-info { flex-basis: 25%; padding-right: 15px; }
-        
-        /* --- INICIO DE CAMBIOS (COMPACTO) --- */
-        .item-info .raza { 
-            font-family: 'Oswald', sans-serif; 
-            font-weight: 500; 
-            font-size: 11pt; 
-            color: #00204a; 
-            display: block; 
-            margin-bottom: 1px; /* MODIFICADO: Antes 2px */
+        .footer-info {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 8pt;
+            color: #aaa;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
         }
-        /* --- FIN DE CAMBIOS --- */
-        
-        /* --- INICIO DE CAMBIOS (PROTAGONISMO PESO) --- */
-        .item-info .peso { 
-            font-size: 9.5pt; /* MODIFICADO: Antes 8pt */
-            color: #333; /* MODIFICADO: Antes #666 */
-            font-family: 'Oswald', sans-serif; /* MODIFICADO: Añadido */
-            font-weight: 500; /* MODIFICADO: Añadido */
-        }
-        /* --- FIN DE CAMBIOS --- */
-
-        .item-prices { flex-basis: 40%; display: flex; justify-content: space-around; align-items: center; text-align: center; border-left: 1px solid #eee; border-right: 1px solid #eee; padding: 0 10px; }
-        .price-point {}
-        
-        /* --- INICIO DE CAMBIOS (COMPACTO + LEGIBILIDAD) --- */
-        .price-point .label { 
-            display: block; 
-            font-size: 9pt; /* MANTENIDO: Desde el cambio anterior */
-            font-weight: 700; 
-            color: #666; /* MANTENIDO: Desde el cambio anterior */
-            text-transform: uppercase; 
-            margin-bottom: 2px; /* MODIFICADO: Antes 3px */
-        }
-        /* --- FIN DE CAMBIOS --- */
-
-        .price-point .value { font-family: 'Oswald', sans-serif; font-size: 13pt; font-weight: 500; color: #333; line-height: 1.1; }
-        .price-point.promedio .value { font-size: 17pt; font-weight: 700; color: #00204a; }
-        .item-volume { flex-basis: 35%; padding-left: 15px; text-align: right; }
-        
-        /* --- INICIO DE CAMBIOS (COMPACTO) --- */
-        .volume-pair { 
-            margin-bottom: 2px; /* MODIFICADO: Antes 4px */
-        }
-        /* --- FIN DE CAMBIOS --- */
-
-        /* --- INICIO DE CAMBIOS (LEGIBILIDAD) --- */
-        .volume-pair .label, .total-value .label { 
-            font-size: 9.5pt; /* MANTENIDO: Desde el cambio anterior */
-            font-weight: 700; 
-            color: #444; /* MANTENIDO: Desde el cambio anterior */
-            margin-right: 5px; 
-            display: inline-block; 
-        }
-        .volume-pair .value { 
-            font-weight: 700; 
-            font-size: 9.5pt; /* MANTENIDO: Desde el cambio anterior */
-            color: #00204a; 
-            font-variant-numeric: tabular-nums; 
-            white-space: nowrap; 
-            display: inline-block; 
-        }
-        /* --- FIN DE CAMBIOS --- */
-
-        /* --- INICIO DE CAMBIOS (COMPACTO) --- */
-        .total-value { 
-            margin-bottom: 2px; /* MODIFICADO: Añadido */
-            margin-top: 5px; /* MODIFICADO: Antes 8px */
-            padding-top: 5px; /* MODIFICADO: Antes 8px */
-            border-top: 1px dotted #ccc; 
-        }
-        /* --- FIN DE CAMBIOS --- */
-        
-        .total-value .value { font-family: 'Oswald', sans-serif; font-size: 11pt; font-weight: 700; }
-        .no-data { text-align: center; color: #6c757d; font-style: italic; padding: 30px 15px; background-color: #fff;}
     </style>
 </head>
 <body>
-    {# --- Header NO Fijo (SIN CAMBIOS) --- #}
     <div class="header">
-        {% if logo_path %}
-            <img src="{{ logo_path }}" alt="Logo Consignataria Ortiz" class="logo">
-        {% endif %}
-        <div class="header-text">
-            <h1>Reporte de Precios</h1>
-            <p class="subtitle">Día {{ fecha_reporte }}</p>
-            <div class="tipo-hacienda">Tipo: {{ tipo_hacienda }}</div>
-            <div class="top-info">
-                Ortiz y Cía. Consignatarios — Instagram: @ortiz.consignatarios — Wpp (2262) 508401
+        <div class="header-content">
+            <div class="brand-box">
+                <h1>Ortíz y Cia.</h1>
+                <h2>Consignataria</h2>
+                <div class="contact-info">
+                    Instagram: @ortiz.consignatarios • Wpp: (2262) 508401
+                </div>
+            </div>
+            <div class="meta-box">
+                <div class="report-title">Informe de Faena</div>
+                <div class="date-range">
+                    {{ fecha_reporte }}
+                </div>
+                <br>
+                <span class="badge">Consolidado Diario</span>
             </div>
         </div>
     </div>
 
-    {# --- Contenido Principal (SIN CAMBIOS ESTRUCTURALES) --- #}
-    <div class="container">
-        {% if datos %}
-            {% for categoria, items_grupo in datos | groupby('categoria_original') %}
-                <div class="category-block">
-                    <div class="category-header">
-                        <h2>{{ categoria }}</h2>
-                    </div>
-                    <div class="data-item-container">
-                        {% for fila in items_grupo %}
-                        <div class="data-item">
-                            <div class="item-info">
-                                <span class="raza">{{ fila.raza or ' ' }}</span>
-                                <span class="peso">{{ 'Peso ' + fila.rango_peso or '-' }}</span>
-                            </div>
-                            <div class="item-prices">
-                                <div class="price-point">
-                                    <span class="label">Mín $/Kg</span>
-                                    <span class="value">{{ "%.2f"|format(fila.precio_min_kg) if fila.precio_min_kg is not none else '-' }}</span>
-                                </div>
-                                <div class="price-point promedio">
-                                    <span class="label">Prom $/Kg</span>
-                                    <span class="value">{{ "%.2f"|format(fila.precio_promedio_kg) if fila.precio_promedio_kg is not none else '-' }}</span>
-                                </div>
-                                <div class="price-point">
-                                    <span class="label">Máx $/Kg</span>
-                                    <span class="value">{{ "%.2f"|format(fila.precio_max_kg) if fila.precio_max_kg is not none else '-' }}</span>
-                                </div>
-                            </div>
-                            <div class="item-volume">
-                                <div class="volume-pair">
-                                    <span class="label">Cabezas:</span>
-                                    <span class="value">{{ "{:,}".format(fila.cabezas|int) if fila.cabezas is not none else '-' }}</span>
-                                </div>
-                                <div class="volume-pair">
-                                    <span class="label">Kgs Total:</span>
-                                    <span class="value">{{ "{:,}".format(fila.kilos_total|int) if fila.kilos_total is not none else '-' }}</span>
-                                </div>
-                                <div class="total-value">
-                                   <span class="label">Importe Total:</span>
-                                   <span class="value">{{ "{:,.2f}".format(fila.importe_total) if fila.importe_total is not none else '-' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-             <div class="no-data">
-                 <p>No se encontraron datos para esta fecha.</p>
-             </div>
-        {% endif %}
+    {% if datos %}
+        {% for categoria, items in datos | groupby('categoria_original') %}
+        <div class="category-section">
+            <div class="category-title">{{ categoria }}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subcategoría / Raza</th>
+                        <th>Mín ($)</th>
+                        <th>Máx ($)</th>
+                        <th class="col-promedio">Prom ($)</th>
+                        <th>Cabezas</th>
+                        <th>Kgs Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in items %}
+                    <tr>
+                        <td>
+                            <span class="raza-info">{{ row.raza }}</span>
+                            <span class="peso-info">{{ row.rango_peso }}</span>
+                        </td>
+                        <td>{{ "%.0f"|format(row.precio_min_kg) }}</td>
+                        <td>{{ "%.0f"|format(row.precio_max_kg) }}</td>
+                        <td class="col-promedio">{{ "%.2f"|format(row.precio_promedio_kg) }}</td>
+                        <td class="col-volumen">{{ row.cabezas }}</td>
+                        <td class="col-volumen">{{ "{:,}".format(row.kilos_total|int) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center; color: #666; margin-top: 50px; font-style: italic;">
+            No hay operaciones registradas para esta fecha.
+        </p>
+    {% endif %}
+
+    <div class="footer-info">
+        Generado automáticamente el {{ fecha_reporte }}
     </div>
 </body>
 </html>
