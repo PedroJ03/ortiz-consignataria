@@ -2,33 +2,32 @@ import sqlite3
 import os
 from datetime import datetime
 
-# --- ========================================== ---
-# --- 1. RUTA CORREGIDA (3 NIVELES) ---
-# --- ========================================== ---
+# --- CONFIGURACIÓN DE RUTAS ---
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DB_PATH = os.path.join(PROJECT_ROOT, 'precios_historicos.db') 
 
-
 def get_db_connection():
-    """Crea y devuelve una conexión a la base de datos (el archivo real)."""
+    """Crea y devuelve una conexión a la base de datos."""
     try:
-        conn = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-        conn.execute("PRAGMA foreign_keys = ON;")
+        conn = sqlite3.connect(DB_PATH)
+        # Habilitamos row_factory para acceder a columnas por nombre
         conn.row_factory = sqlite3.Row 
         return conn
     except sqlite3.Error as e:
-        print(f"Error al conectar a la base de datos en {DB_PATH}: {e}")
+        print(f"Error crítico conectando a BD: {e}")
         return None
 
 def crear_tablas(conn):
-    """Crea las tablas (faena e invernada) si no existen."""
+    """Crea las tablas con índices optimizados."""
     try:
         cursor = conn.cursor()
+        
+        # Tabla FAENA
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS faena (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fecha_extraccion TIMESTAMP NOT NULL,
-            fecha_consulta TEXT NOT NULL,
+            fecha_consulta TEXT NOT NULL,  -- Se guarda como YYYY-MM-DD
             tipo_hacienda TEXT,
             categoria_original TEXT NOT NULL,
             raza TEXT,
@@ -42,12 +41,14 @@ def crear_tablas(conn):
             UNIQUE(fecha_consulta, categoria_original, raza, rango_peso)
         );
         """)
+        
+        # Tabla INVERNADA
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS invernada (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fecha_extraccion TIMESTAMP NOT NULL,
-            fecha_consulta_inicio TEXT,
-            fecha_consulta_fin TEXT,
+            fecha_consulta_inicio TEXT, -- Se guarda como YYYY-MM-DD
+            fecha_consulta_fin TEXT,    -- Se guarda como YYYY-MM-DD
             tipo_hacienda TEXT,
             categoria_original TEXT NOT NULL,
             precio_promedio_kg REAL,
@@ -56,19 +57,20 @@ def crear_tablas(conn):
             UNIQUE(fecha_consulta_fin, categoria_original)
         );
         """)
+        
+        # Índices para búsquedas rápidas por fecha
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_faena_fecha ON faena (fecha_consulta)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_invernada_fecha ON invernada (fecha_consulta_fin)")
         conn.commit()
     except sqlite3.Error as e:
-        print(f"Error al crear las tablas: {e}")
+        print(f"Error creando tablas: {e}")
 
-# --- ========================================== ---
-# --- 2. LÓGICA DE INSERCIÓN (DD/MM/YYYY y ISO) ---
-# --- ========================================== ---
+# --- LÓGICA DE ESCRITURA (ENTRADA) ---
+# Convierte DD/MM/YYYY (del Scraper) -> YYYY-MM-DD (para la BD)
+
 def insertar_datos_faena(conn, lista_datos_faena):
-    """Inserta registros de Faena. (Guarda fecha_consulta como DD/MM/YYYY)."""
-    if not lista_datos_faena:
-        return 0
+    if not lista_datos_faena: return 0
+    
     sql = """
     INSERT OR IGNORE INTO faena(
         fecha_extraccion, fecha_consulta, tipo_hacienda, categoria_original, raza, 
@@ -81,20 +83,23 @@ def insertar_datos_faena(conn, lista_datos_faena):
     );
     """
     
-    # Corregido para DeprecationWarning
     fecha_actual_str = datetime.now().isoformat()
-    
     datos_para_insertar = []
+    
     for item in lista_datos_faena:
-        # Guardar la fecha del scraper (DD/MM/YYYY) directamente
-        fecha_consulta_dmy = item.get('fecha_consulta_inicio')
-        if not fecha_consulta_dmy:
-            print(f"Omitiendo registro de faena sin 'fecha_consulta_inicio'. Datos: {item}")
+        fecha_raw = item.get('fecha_consulta_inicio') # Viene como 19/11/2025
+        
+        # TRADUCCIÓN AL ENTRAR: DD/MM/YYYY -> YYYY-MM-DD
+        try:
+            fecha_iso = datetime.strptime(fecha_raw, "%d/%m/%Y").strftime("%Y-%m-%d")
+        except (ValueError, TypeError):
+            # Si falla, no insertamos basura
+            print(f"Error de fecha en registro: {fecha_raw}")
             continue
 
         item_dict = {
-            'fecha_extraccion': fecha_actual_str, # (Guardado como ISO)
-            'fecha_consulta': fecha_consulta_dmy, # (Guardado como DD/MM/YYYY)
+            'fecha_extraccion': fecha_actual_str,
+            'fecha_consulta': fecha_iso, # <--- GUARDAMOS ISO
             'tipo_hacienda': item.get('tipo_hacienda'),
             'categoria_original': item.get('categoria_original'),
             'raza': item.get('raza'),
@@ -114,14 +119,18 @@ def insertar_datos_faena(conn, lista_datos_faena):
         conn.commit()
         return cursor.rowcount 
     except sqlite3.Error as e:
-        print(f"Error al insertar datos de Faena: {e}")
+        print(f"Error SQL insertando Faena: {e}")
         conn.rollback()
         return 0
 
+
 def insertar_datos_invernada(conn, lista_datos_invernada):
-    """Inserta registros de Invernada. (Guarda fechas como DD/MM/YYYY)."""
+    """
+    Inserta registros de Invernada convirtiendo fechas de DD/MM/YYYY a YYYY-MM-DD.
+    """
     if not lista_datos_invernada:
         return 0
+
     sql = """
     INSERT OR IGNORE INTO invernada (
         fecha_extraccion, fecha_consulta_inicio, fecha_consulta_fin, tipo_hacienda, 
@@ -136,10 +145,22 @@ def insertar_datos_invernada(conn, lista_datos_invernada):
     datos_para_insertar = []
     
     for item in lista_datos_invernada:
+        # 1. Obtener fechas crudas (DD/MM/YYYY)
+        inicio_raw = item.get('fecha_consulta_inicio')
+        fin_raw = item.get('fecha_consulta_fin')
+        
+        # 2. Conversión a ISO (YYYY-MM-DD)
+        try:
+            inicio_iso = datetime.strptime(inicio_raw, "%d/%m/%Y").strftime("%Y-%m-%d") if inicio_raw else None
+            fin_iso = datetime.strptime(fin_raw, "%d/%m/%Y").strftime("%Y-%m-%d") if fin_raw else None
+        except (ValueError, TypeError):
+            print(f"Error de fecha en registro Invernada: {inicio_raw} - {fin_raw}")
+            continue # Saltamos registros con fechas rotas
+
         item_dict = {
             'fecha_extraccion': fecha_actual_str,
-            'fecha_consulta_inicio': item.get('fecha_consulta_inicio'), # (DD/MM/YYYY)
-            'fecha_consulta_fin': item.get('fecha_consulta_fin'),       # (DD/MM/YYYY)
+            'fecha_consulta_inicio': inicio_iso, # <--- GUARDADO COMO ISO
+            'fecha_consulta_fin': fin_iso,       # <--- GUARDADO COMO ISO
             'tipo_hacienda': item.get('tipo_hacienda'),
             'categoria_original': item.get('categoria_original'),
             'precio_promedio_kg': item.get('precio_promedio_kg'),
@@ -154,27 +175,27 @@ def insertar_datos_invernada(conn, lista_datos_invernada):
         conn.commit()
         return cursor.rowcount
     except sqlite3.Error as e:
-        print(f"Error al insertar datos de Invernada: {e}")
+        print(f"Error SQL insertando Invernada: {e}")
         conn.rollback()
         return 0
 
-# --- ========================================== ---
-# --- 3. LÓGICA DE CONSULTA CORRECTA (SUBSTR) ---
-# --- ========================================== ---
 def get_faena_historico(conn, start_date, end_date, categoria=None, raza=None, rango_peso=None):
-    """Obtiene datos históricos de Faena. (Lee fechas DD/MM/YYYY)."""
-    if not start_date or not end_date:
-         raise ValueError("Formato de fecha inválido. Se esperaba YYYY-MM-DD.")
-
-    # Re-introducida la lógica SUBSTR para leer DD/MM/YYYY
-    base_query = """
-        SELECT fecha_consulta, precio_promedio_kg FROM faena 
-        WHERE (SUBSTR(fecha_consulta, 7, 4) || '-' || 
-             SUBSTR(fecha_consulta, 4, 2) || '-' || 
-             SUBSTR(fecha_consulta, 1, 2))
-            BETWEEN ? AND ?
     """
-    params = [start_date, end_date] # Compara con YYYY-MM-DD
+    Devuelve los datos para el Dashboard incluyendo CABEZAS.
+    """
+    # Se agrega 'cabezas' al SELECT
+    base_query = """
+        SELECT 
+            strftime('%d/%m/%Y', fecha_consulta) as fecha_consulta, 
+            precio_promedio_kg,
+            cabezas,  -- <--- ¡ESTO FALTABA!
+            categoria_original,
+            raza,
+            rango_peso
+        FROM faena 
+        WHERE fecha_consulta BETWEEN ? AND ?
+    """
+    params = [start_date, end_date]
 
     if categoria:
         base_query += " AND categoria_original = ?"
@@ -186,7 +207,7 @@ def get_faena_historico(conn, start_date, end_date, categoria=None, raza=None, r
         base_query += " AND rango_peso = ?"
         params.append(rango_peso)
     
-    base_query += " ORDER BY (SUBSTR(fecha_consulta, 7, 4) || '-' || SUBSTR(fecha_consulta, 4, 2) || '-' || SUBSTR(fecha_consulta, 1, 2)) ASC"
+    base_query += " ORDER BY faena.fecha_consulta ASC"
     
     cursor = conn.cursor()
     cursor.execute(base_query, tuple(params))
@@ -194,17 +215,17 @@ def get_faena_historico(conn, start_date, end_date, categoria=None, raza=None, r
     return rows
 
 def get_invernada_historico(conn, start_date, end_date, categoria=None):
-    """Obtiene datos históricos de Invernada. (Lee fechas DD/MM/YYYY)."""
-    if not start_date or not end_date:
-         raise ValueError("Formato de fecha inválido. Se esperaba YYYY-MM-DD.")
-
-    # Re-introducida la lógica SUBSTR
+    # Se agrega 'cabezas' al SELECT
     base_query = """
-        SELECT fecha_consulta_fin, precio_promedio_kg FROM invernada 
-        WHERE (SUBSTR(fecha_consulta_fin, 7, 4) || '-' || 
-             SUBSTR(fecha_consulta_fin, 4, 2) || '-' || 
-             SUBSTR(fecha_consulta_fin, 1, 2))
-            BETWEEN ? AND ?
+        SELECT 
+            strftime('%d/%m/%Y', fecha_consulta_inicio) as fecha_consulta_inicio,
+            strftime('%d/%m/%Y', fecha_consulta_fin) as fecha_consulta_fin,
+            categoria_original,
+            precio_promedio_kg,
+            variacion_semanal_precio,
+            cabezas -- <--- ¡ESTO FALTABA!
+        FROM invernada 
+        WHERE fecha_consulta_fin BETWEEN ? AND ?
     """
     params = [start_date, end_date]
 
@@ -212,53 +233,9 @@ def get_invernada_historico(conn, start_date, end_date, categoria=None):
         base_query += " AND categoria_original = ?"
         params.append(categoria)
     
-    base_query += " ORDER BY (SUBSTR(fecha_consulta_fin, 7, 4) || '-' || SUBSTR(fecha_consulta_fin, 4, 2) || '-' || SUBSTR(fecha_consulta_fin, 1, 2)) ASC"
+    base_query += " ORDER BY invernada.fecha_consulta_fin ASC"
     
     cursor = conn.cursor()
     cursor.execute(base_query, tuple(params))
     rows = [dict(row) for row in cursor.fetchall()]
     return rows
-
-
-# --- Bloque de prueba (Actualizado) ---
-if __name__ == '__main__':
-    print(f"Buscando base de datos en: {DB_PATH}")
-    if not os.path.exists(DB_PATH):
-        print("\n--- ERROR ---")
-        print(f"No se encontró el archivo 'precios_historicos.db' en la ruta esperada: {DB_PATH}")
-    else:
-        print("¡Base de datos encontrada!")
-        print("\nProbando get_faena_historico (con todos los filtros):")
-        
-        conn_test = None
-        try:
-            conn_test = get_db_connection()
-            if conn_test:
-                # El bloque de prueba ahora usa la consulta SUBSTR
-                datos = get_faena_historico(
-                    conn_test,
-                    '2025-01-01', # YYYY-MM-DD
-                    '2025-12-31', # YYYY-MM-DD
-                    #'01/01/2025', # DD/MM/YYYY
-                    #'31/12/2025', # DD/MM/YYYY
-                    categoria='NOVILLOS', 
-                    #raza='MESTIZOS', 
-                    #rango_peso='391-430' 
-                )
-                print(f"Se encontraron {len(datos)} registros de Faena.")
-                
-                print("\nProbando get_invernada_historico:")
-                datos_inv = get_invernada_historico(
-                    conn_test,
-                    '2025-01-01',
-                    '2025-12-31', 
-                    categoria='TERNEROS'
-                )
-                print(f"Se encontraron {len(datos_inv)} registros de Invernada.")
-            else:
-                print("No se pudo establecer la conexión de prueba.")
-        except Exception as e:
-            print(f"Error durante la prueba: {e}")
-        finally:
-            if conn_test:
-                conn_test.close()
