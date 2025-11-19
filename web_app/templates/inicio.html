@@ -1,56 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio - Ortiz y Cía. Consignatarios{% endblock %}
-
-{% block styles %}
-<style>
-    .welcome-container {
-        max-width: 900px;
-        margin: 50px auto;
-        padding: 40px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 32, 74, 0.08);
-        text-align: center;
-    }
-    .welcome-container h1 {
-        font-family: 'Oswald', sans-serif;
-        color: #00204a;
-        font-size: 28pt;
-    }
-    .welcome-container p {
-        font-size: 14pt;
-        line-height: 1.6;
-        margin-bottom: 30px;
-    }
-    .welcome-container .cta-button {
-        display: inline-block;
-        background-color: #00204a;
-        color: #fff;
-        padding: 12px 25px;
-        font-family: 'Oswald', sans-serif;
-        font-size: 16pt;
-        text-decoration: none;
-        text-transform: uppercase;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    }
-    .welcome-container .cta-button:hover {
-        background-color: #003366;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="welcome-container">
-    <h1>Bienvenido a la Plataforma Digital de Ortiz y Cía. Consignatarios</h1>
-    <p>
-        Acceda a la información y análisis de precios del mercado de hacienda.
-        Nuestra plataforma le permite visualizar datos históricos y reportes
-        actualizados de Faena e Invernada.
-    </p>
-    <a href="{{ url_for('dashboard') }}" class="cta-button">
-        Ver Gráficos de Precios
-    </a>
+<div class="max-w-6xl mx-auto mt-8">
+    
+    <div class="grid md:grid-cols-2 gap-12 items-center mb-16">
+        <div class="space-y-6">
+            <div class="inline-block bg-blue-50 text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-blue-100">
+                Sistema de Gestión
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-brand leading-tight">
+                Información precisa para su negocio ganadero.
+            </h1>
+            <p class="text-lg text-gray-600 leading-relaxed">
+                En <strong>Ortíz y Cía. Consignataria</strong> brindamos herramientas digitales para el seguimiento de valores de Faena e Invernada, facilitando la toma de decisiones comerciales.
+            </p>
+            
+            <div class="pt-4 flex flex-col sm:flex-row gap-4">
+                <a href="{{ url_for('dashboard') }}" 
+                   class="px-8 py-3 bg-brand text-white font-semibold rounded-lg shadow-lg hover:bg-brand-light transition-colors text-center">
+                    Ver Evolución de Precios
+                </a>
+            </div>
+        </div>
+        
+        <div class="flex justify-center items-center bg-white rounded-2xl shadow-sm p-10 border border-gray-100">
+            <img src="{{ url_for('static', filename='images/logo_azul_circular.png') }}" 
+                 alt="Logo Ortíz y Cía" 
+                 class="w-64 h-64 object-contain opacity-90">
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
+            <div class="w-10 h-10 bg-brand text-white rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-brand transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+            <h3 class="font-bold text-lg text-brand mb-2">Mercado Agroganadero</h3>
+            <p class="text-sm text-gray-500">Seguimiento diario de precios de faena, filtrado por categoría y calidad.</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
+            <div class="w-10 h-10 bg-brand text-white rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-brand transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 class="font-bold text-lg text-brand mb-2">Invernada</h3>
+            <p class="text-sm text-gray-500">Evolución histórica de terneros, vaquillonas y vientres.</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
+            <div class="w-10 h-10 bg-brand text-white rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-brand transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <h3 class="font-bold text-lg text-brand mb-2">Reportes</h3>
+            <p class="text-sm text-gray-500">Generación automática de informes PDF para archivo y análisis.</p>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

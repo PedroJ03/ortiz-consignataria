@@ -1,277 +1,84 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ortiz y Cía. Consignatarios{% endblock %}</title>
+    <title>{% block title %}Ortíz y Cía. Consignataria{% endblock %}</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#062541', // Azul Marca
+                            dark: '#031526',
+                            light: '#133b5c',
+                        },
+                        accent: {
+                            DEFAULT: '#FFC82C', // Amarillo (Solo detalles)
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
 
     <style>
-        :root {
-            --azul-marca: #062541; 
-            --azul-marca-borde: #0e4a7b;
-            --acento-amarillo: #cbd630;
-            --ancho-contenido: 1200px; /* Variable para el ancho centrado */
-        }
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Lato', sans-serif;
-            background-color: #f4f6f8;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .main-content {
-            flex: 1 0 auto;
-        }
-
-        /* --- Estilos del Header Global --- */
-        .global-header {
-            background-color: var(--azul-marca); 
-            color: #fff;
-            padding: 15px 30px; /* Padding por si el contenido es más angosto que la pantalla */
-            border-bottom: 4px solid var(--acento-amarillo);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* --- CORREGIDO: Contenedor Centrado para el Header --- */
-        .header-container {
-            max-width: var(--ancho-contenido);
-            margin: 0 auto; /* Centra el contenedor */
-            display: grid;
-            grid-template-columns: 1fr auto 1fr; /* Logo | Nav (auto) | Espacio/Hamburger */
-            align-items: center;
-        }
-
-        .header-logo {
-            grid-column: 1; /* Columna Izquierda */
-            justify-self: start;
-        }
-        .header-logo img {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .header-nav {
-            grid-column: 2; /* Columna Central (auto) */
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-        .header-nav a {
-            text-decoration: none;
-            color: #fff;
-            font-family: 'Oswald', sans-serif;
-            font-weight: 500;
-            font-size: 14pt;
-            text-transform: uppercase;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .header-nav a:hover,
-        .header-nav a.active { 
-            background-color: #fff; 
-            color: var(--azul-marca);
-        }
-
-        /* --- Menú Hamburguesa --- */
-        .hamburger-menu {
-            grid-column: 3; /* Columna Derecha */
-            justify-self: end;
-            display: none;
-            cursor: pointer;
-        }
-        .hamburger-menu div {
-            width: 25px;
-            height: 3px;
-            background-color: #fff;
-            margin: 5px 0;
-            transition: 0.3s;
-        }
-        
-        /* CORREGIDO: Media query ahora afecta al .header-container */
-        @media (max-width: 768px) {
-            .header-container {
-                display: flex; /* Cambiar a flex en móvil */
-                justify-content: space-between;
-            }
-            .header-nav {
-                display: none;
-                flex-direction: column;
-                width: 100%;
-                background-color: var(--azul-marca);
-                position: absolute;
-                top: 94px; /* 60px logo + 30px padding + 4px borde */
-                left: 0;
-                padding: 10px 0;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                z-index: 100;
-            }
-            .header-nav.active {
-                display: flex;
-            }
-            .header-nav a {
-                text-align: center;
-                padding: 10px;
-                border-bottom: 1px solid var(--azul-marca-borde);
-            }
-            .hamburger-menu {
-                display: block;
-            }
-        }
-
-        /* --- Estilos del Footer Global --- */
-        .global-footer {
-            background-color: var(--azul-marca);
-            color: #f4f6f8;
-            padding: 40px 30px 20px 30px;
-            flex-shrink: 0;
-        }
-        .footer-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 30px;
-            max-width: var(--ancho-contenido); /* Usa la misma variable */
-            margin: 0 auto; /* Centrado */
-            border-bottom: 1px solid var(--azul-marca-borde);
-            padding-bottom: 30px;
-        }
-        .footer-logo-section {
-            flex: 1;
-            min-width: 200px;
-            display: flex;
-            align-items: center;
-        }
-        .footer-logo-section img {
-            max-width: 250px;
-            width: 100%;
-            height: auto;
-        }
-        .footer-links-container {
-            flex: 2;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            gap: 30px;
-            min-width: 300px;
-        }
-        .footer-section {
-            flex: 1;
-            min-width: 200px;
-        }
-        .footer-section h4 {
-            font-family: 'Oswald', sans-serif;
-            font-size: 16pt;
-            text-transform: uppercase;
-            color: var(--acento-amarillo);
-            margin-top: 0;
-        }
-        .footer-section p, .footer-section a {
-            font-size: 11pt;
-            color: #ddd;
-            text-decoration: none;
-        }
-        .footer-section a:hover {
-            color: #fff;
-        }
-        .footer-bottom {
-            text-align: center;
-            padding-top: 20px;
-            font-size: 10pt;
-            color: #aaa;
-            max-width: var(--ancho-contenido); /* Usa la misma variable */
-            margin: 0 auto; /* Centrado */
-        }
-        .footer-bottom a {
-            color: var(--acento-amarillo);
-            text-decoration: none;
-        }
-        .footer-bottom a:hover {
-            text-decoration: underline;
-        }
-
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Montserrat', sans-serif; }
     </style>
-
-    {% block styles %}{% endblock %}
+    
+    {% block head_extra %}{% endblock %}
 </head>
-<body>
+<body class="flex flex-col min-h-screen bg-gray-50 text-gray-800">
 
-    <header class="global-header">
-        <div class="header-container">
-            <div class="header-logo">
-                <img src="{{ url_for('static', filename='images/logo_blanco_circular.png') }}" alt="Ortiz y Cía. Consignatarios Logo">
-            </div>
-            <nav class="header-nav" id="main-nav">
-                <a href="{{ url_for('inicio') }}" class="{{ 'active' if request.path == url_for('inicio') else '' }}">Inicio</a>
-                <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.path == url_for('dashboard') else '' }}">Precios</a>
+    <header class="bg-brand text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            
+            <a href="{{ url_for('inicio') }}" class="flex items-center gap-4 group">
+                <img src="{{ url_for('static', filename='images/logo_blanco_circular.png') }}" 
+                     alt="Ortíz y Cía." 
+                     class="w-12 h-12 transition-transform group-hover:scale-105">
+                
+                <div class="flex flex-col">
+                    <span class="font-bold text-xl tracking-tight uppercase leading-none">Ortíz y Cía.</span>
+                    <span class="text-xs text-gray-300 font-medium tracking-wider uppercase mt-1">Consignataria</span>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex space-x-8">
+                <a href="{{ url_for('inicio') }}" class="text-sm font-semibold uppercase tracking-wide text-gray-300 hover:text-white hover:border-b-2 hover:border-accent transition-all pb-1">Inicio</a>
+                <a href="{{ url_for('dashboard') }}" class="text-sm font-semibold uppercase tracking-wide text-gray-300 hover:text-white hover:border-b-2 hover:border-accent transition-all pb-1">Gráfica de Precios</a>
             </nav>
-            <div class="hamburger-menu" id="hamburger">
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
         </div>
     </header>
 
-    <main class="main-content">
+    <main class="flex-grow container mx-auto px-4 py-8">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="global-footer">
-        <div class="footer-content">
-            <div class="footer-logo-section">
-                <img src="{{ url_for('static', filename='images/logo_azul_circular.png') }}" alt="Ortiz y Cía. Consignatarios Logo Footer">
+    <footer class="bg-white text-gray-500 py-8 border-t border-gray-200">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center gap-2 mb-4 md:mb-0">
+                <span class="font-bold text-brand">Ortíz y Cía.</span>
+                <span class="text-xs">| Consignataria de Hacienda</span>
             </div>
-            
-            <div class="footer-links-container">
-                <div class="footer-section">
-                    <h4>Accesos Rápidos</h4>
-                    <p>
-                        <a href="{{ url_for('inicio') }}">Inicio</a><br>
-                        <a href="{{ url_for('dashboard') }}">Precios</a><br>
-                    </p>
-                </div>
-                <div class="footer-section">
-                    <h4>Contacto</h4>
-                    <p>
-                        Ortiz y Cía. Consignatarios<br>
-                        Teléfono: (0249) 444-1234<br>
-                        Email: contacto@ortizcia.com.ar<br>
-                        Dirección: Av. Siempre Viva 123, Tandil
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Ortiz y Cía. Consignatarios - Todos los derechos reservados.</p>
-            <p>
-                Desarrollado por 
-                <a href="https://tu-linkedin.com" target="_blank" rel="noopener noreferrer">Pedro J [Tu Apellido]</a> 
-                - <a href="https://tu-github.com" target="_blank" rel="noopener noreferrer">Contacto</a>
-            </p>
+            <p class="text-xs">&copy; 2025 Todos los derechos reservados.</p>
         </div>
     </footer>
 
-    <script>
-        document.getElementById('hamburger').addEventListener('click', function() {
-            document.getElementById('main-nav').classList.toggle('active');
-        });
-    </script>
-
-    {% block scripts %}{% endblock %}
-
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+    {% block scripts_extra %}{% endblock %}
 </body>
 </html>
