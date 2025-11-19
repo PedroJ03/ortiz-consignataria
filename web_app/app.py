@@ -1,11 +1,11 @@
 import sys
 import os
-from flask import Flask, jsonify, request, render_template, abort, g # <-- 'g' importado
+from flask import Flask, jsonify, request, render_template, abort, g
 from flask_cors import CORS
 from datetime import datetime
 import sqlite3
 
-# --- Configuración de sys.path (1 nivel arriba de web_app) ---
+# --- Configuración de sys.path ---
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -21,27 +21,30 @@ except ModuleNotFoundError:
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 CORS(app) 
 
-# --- ========================================== ---
-# --- INICIO DE CORRECCIÓN (Manejo de Conexión) ---
-# --- ========================================== ---
+# --- LISTA NEGRA DE CATEGORÍAS (Para ocultar en el dashboard) ---
+CATEGORIAS_EXCLUIDAS = [
+    # Invernada
+    "Ternera Holando",
+    "Vacas CUT con cría",
+    # Faena
+    "TERNERAS", # (Ojo: en BBDD suele estar en mayúsculas para Faena)
+    "NOVILLOS + CRUZA CEBU", # Verificar nombre exacto en BBDD
+    "NOVILLOS + CRUZA EUROPEA" # Verificar nombre exacto en BBDD
+]
 
+# --- Manejo de Conexión de BBDD ---
 def get_db():
-    """Abre una nueva conexión a la BBDD si no existe una para esta petición."""
     if 'db' not in g:
-        # get_db_connection() usa la ruta de 3 niveles y encuentra el .db
         g.db = db_manager.get_db_connection()
     return g.db
 
 @app.teardown_appcontext
 def close_db(e=None):
-    """Cierra la conexión a la BBDD al final de la petición."""
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
-# --- FIN DE CORRECCIÓN ---
-
-# --- Rutas de Navegación (sin cambios) ---
+# --- Rutas de Navegación ---
 @app.route('/')
 def inicio():
     return render_template('inicio.html') 
@@ -50,13 +53,11 @@ def inicio():
 def dashboard():
     return render_template('dashboard.html') 
 
-# --- ========================================== ---
-# --- ENDPOINTS DE API (ACTUALIZADOS) ---
-# --- ========================================== ---
+# --- Endpoints de API ---
 
 @app.route('/api/faena')
 def api_faena():
-    """Endpoint de API para Faena (ahora usa 'g.db')."""
+    # ... (Sin cambios) ...
     start_date_iso = request.args.get('start')
     end_date_iso = request.args.get('end')
     categoria = request.args.get('categoria')
@@ -67,89 +68,98 @@ def api_faena():
         return jsonify({"error": "Parámetros 'start' y 'end' (YYYY-MM-DD) son requeridos."}), 400
 
     try:
-        conn = get_db() # <-- CORREGIDO: Obtiene la conexión de la petición
+        conn = get_db()
         datos = db_manager.get_faena_historico(
-            conn, # <-- CORREGIDO: Pasa la conexión
-            start_date_iso, 
-            end_date_iso, 
-            categoria or None,
-            raza or None,
-            rango_peso or None
+            conn, start_date_iso, end_date_iso, categoria, raza, rango_peso
         )
         return jsonify(datos) 
     except Exception as e:
         print(f"Error en api_faena: {e}")
-        return jsonify({"error": "Error interno del servidor al consultar Faena."}), 500
+        return jsonify({"error": "Error interno."}), 500
 
 @app.route('/api/invernada')
 def api_invernada():
-    """Endpoint de API para Invernada (ahora usa 'g.db')."""
+    # ... (Sin cambios) ...
     start_date_iso = request.args.get('start')
     end_date_iso = request.args.get('end')
     categoria = request.args.get('categoria')
 
     if not start_date_iso or not end_date_iso:
-        return jsonify({"error": "Parámetros 'start' y 'end' (YYYY-MM-DD) son requeridos."}), 400
+        return jsonify({"error": "Parámetros requeridos."}), 400
         
     try:
-        conn = get_db() # <-- CORREGIDO
-        datos = db_manager.get_invernada_historico(
-            conn, # <-- CORREGIDO
-            start_date_iso, 
-            end_date_iso, 
-            categoria or None
-        )
+        conn = get_db()
+        datos = db_manager.get_invernada_historico(conn, start_date_iso, end_date_iso, categoria)
         return jsonify(datos)
     except Exception as e:
         print(f"Error en api_invernada: {e}")
-        return jsonify({"error": "Error interno del servidor al consultar Invernada."}), 500
+        return jsonify({"error": "Error interno."}), 500
         
+# --- API ACTUALIZADA: Filtrado de Categorías ---
 @app.route('/api/categorias')
 def api_categorias():
-    """Endpoint de API para categorías (ahora usa 'g.db')."""
+    """Endpoint de API para categorías (filtrando las excluidas)."""
     try:
-        conn = get_db() # <-- CORREGIDO
-        if not conn:
-            # Esta es la causa probable: si get_db() falla, conn es None
-            print("Error en api_categorias: g.db no se pudo establecer.")
-            abort(500, "No se pudo conectar a la base de datos.") 
+        conn = get_db()
+        if not conn: abort(500, "No DB connection.") 
             
         cursor = conn.cursor()
+        
+        # Faena
         cursor.execute("SELECT DISTINCT categoria_original FROM faena ORDER BY categoria_original")
-        categorias_faena = [row['categoria_original'] for row in cursor.fetchall()]
+        all_faena = [row['categoria_original'] for row in cursor.fetchall()]
+        
+        # Invernada
         cursor.execute("SELECT DISTINCT categoria_original FROM invernada ORDER BY categoria_original")
-        categorias_invernada = [row['categoria_original'] for row in cursor.fetchall()]
+        all_invernada = [row['categoria_original'] for row in cursor.fetchall()]
+        
+        # --- Filtrado en Python (Case Insensitive para seguridad) ---
+        excluidas_lower = [c.lower() for c in CATEGORIAS_EXCLUIDAS]
+        
+        # Verificar si el nombre exacto O alguna parte coincide (opcional)
+        # Aquí usamos coincidencia exacta o parcial según prefieras. 
+        # Usaré coincidencia exacta insensible a mayúsculas/minúsculas para ser preciso.
+        
+        categorias_faena = [
+            c for c in all_faena 
+            if c.lower() not in excluidas_lower 
+            and not any(ex in c.lower() for ex in ["cruza cebu", "cruza europea"]) # Filtro especial para tus combinaciones
+        ]
+        
+        categorias_invernada = [
+            c for c in all_invernada 
+            if c.lower() not in excluidas_lower
+        ]
         
         return jsonify({ 'faena': categorias_faena, 'invernada': categorias_invernada })
     except Exception as e:
         print(f"Error en api_categorias: {e}")
-        return jsonify({"error": "Error interno del servidor al consultar categorías."}), 500
+        return jsonify({"error": "Error interno."}), 500
 
 @app.route('/api/subcategorias')
 def api_subcategorias():
-    """Endpoint de API para subcategorías (ahora usa 'g.db')."""
+    # ... (Sin cambios) ...
     categoria = request.args.get('categoria')
-    tipo_hacienda = request.args.get('tipo', 'faena')
-
-    if not categoria:
-        return jsonify({"error": "Parámetro 'categoria' es requerido."}), 400
-    if tipo_hacienda != 'faena':
-        return jsonify({'razas': [], 'pesos': []})
+    raza_filtro = request.args.get('raza')
+    if not categoria: return jsonify({"error": "Parámetro 'categoria' es requerido."}), 400
 
     try:
-        conn = get_db() # <-- CORREGIDO
+        conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT raza FROM faena WHERE categoria_original = ? AND raza IS NOT NULL ORDER BY raza", (categoria,))
+        cursor.execute("SELECT DISTINCT raza FROM faena WHERE categoria_original = ? AND raza IS NOT NULL AND raza != '' ORDER BY raza", (categoria,))
         razas = [row['raza'] for row in cursor.fetchall()]
-        cursor.execute("SELECT DISTINCT rango_peso FROM faena WHERE categoria_original = ? AND rango_peso IS NOT NULL ORDER BY rango_peso", (categoria,))
+
+        if raza_filtro:
+            cursor.execute("SELECT DISTINCT rango_peso FROM faena WHERE categoria_original = ? AND raza = ? AND rango_peso IS NOT NULL AND rango_peso != '' ORDER BY rango_peso", (categoria, raza_filtro))
+        else:
+            cursor.execute("SELECT DISTINCT rango_peso FROM faena WHERE categoria_original = ? AND rango_peso IS NOT NULL AND rango_peso != '' ORDER BY rango_peso", (categoria,))
+            
         pesos = [row['rango_peso'] for row in cursor.fetchall()]
         
         return jsonify({ 'razas': razas, 'pesos': pesos })
     except Exception as e:
         print(f"Error en api_subcategorias: {e}")
-        return jsonify({"error": "Error interno del servidor al consultar subcategorías."}), 500
+        return jsonify({"error": "Error interno."}), 500
 
-# --- Bloque para ejecutar el servidor de desarrollo (sin cambios) ---
 if __name__ == '__main__':
-    print("--- Iniciando servidor de desarrollo Flask ---")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)

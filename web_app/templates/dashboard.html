@@ -1,112 +1,322 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard de Precios - Ortiz y Cía. Consignatarios{% endblock %}
+{% block title %}Gráfica de Precios - Ortiz y Cía. Consignatarios{% endblock %}
 
 {% block styles %}
 <style>
-    /* Contenedor principal del dashboard (la caja blanca) */
+    /* --- VARIABLES DE DISEÑO --- */
+    :root {
+        --primary-color: #062541; /* Azul de la Marca */
+        --accent-color: #cbd630; /* Amarillo de Acento */
+        --bg-gray: #f8fafc; /* Fondo suave */
+        --border-light: #e2e8f0; /* Borde muy sutil */
+        --text-gray: #64748b;
+        --radius: 10px; /* Bordes redondeados */
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 32, 74, 0.1);
+    }
+
+    /* Contenedor Principal */
     .dashboard-container {
         max-width: 1200px;
-        margin: 30px auto;
+        margin: 40px auto;
         background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 32, 74, 0.08);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
         overflow: hidden;
+        border: 1px solid var(--border-light);
     }
     
-    /* Título H1 simple */
+    /* Título */
     .dashboard-title {
         font-family: 'Oswald', sans-serif;
         font-size: 24pt;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: #062541; /* Color de marca */
-        padding: 30px 30px 0 30px;
+        color: var(--primary-color);
+        padding: 30px 40px 10px 40px;
         margin: 0;
     }
 
-    /* Estilos de controles, gráfico, spinner, etc. */
-    .controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        padding: 20px 30px;
-        border-bottom: 1px solid #eee;
-        background-color: #fdfdfd;
+    /* --- CONTENEDOR DE CONTROLES --- */
+    .controls-wrapper {
+        padding: 10px 40px 30px 40px;
+        background-color: #fff;
+        border-bottom: 1px solid var(--border-light);
     }
-    .control-group {
+
+    /* 1. Selector de Tipo (Estilo Tabs Modernos) */
+    .type-selector {
+        display: inline-flex;
+        background-color: var(--bg-gray);
+        padding: 5px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+    .type-btn {
+        padding: 8px 25px;
+        font-family: 'Oswald', sans-serif;
+        font-size: 13pt;
+        text-transform: uppercase;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--text-gray);
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .type-btn:hover {
+        color: var(--primary-color);
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+    .type-btn.active {
+        background-color: var(--primary-color);
+        color: #fff;
+        box-shadow: var(--shadow-sm);
+        font-weight: 600;
+    }
+
+    /* 2. Sub-Selectores (Chips) */
+    .sub-type-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .chip-btn {
+        padding: 8px 18px;
+        border: 1px solid var(--border-light);
+        border-radius: 25px; /* Forma de píldora */
+        background-color: #fff;
+        font-size: 10pt;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text-gray);
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .chip-btn:hover { 
+        border-color: #94a3b8; 
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        color: var(--primary-color);
+    }
+    .chip-btn.active {
+        background-color: var(--accent-color);
+        color: var(--primary-color); 
+        border-color: var(--accent-color);
+        box-shadow: var(--shadow-sm);
+    }
+    .hidden { display: none !important; }
+
+    /* 3. Inputs y Selects */
+    .category-wrapper {
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    /* Estilo base para inputs y selects */
+    .category-select, .filter-select, .date-inputs input, .aggregation-control select {
+        padding: 10px 15px;
+        font-size: 11pt;
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        background-color: #fff;
+        color: #333;
+        font-family: 'Lato', sans-serif;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+        appearance: none;
+    }
+    
+    /* Restaurar flecha en selects */
+    .category-select, .filter-select, .aggregation-control select {
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23062541%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right .7em top 50%;
+        background-size: .65em auto;
+        padding-right: 2.5em; 
+    }
+    
+    .category-select:focus, .filter-select:focus, .date-inputs input:focus, .aggregation-control select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(6, 37, 65, 0.1);
+    }
+
+    .category-select {
+        width: 100%;
+        max-width: 450px;
+        background-color: var(--bg-gray);
+        font-weight: 600;
+    }
+
+    .data-count-badge {
+        font-size: 9pt;
+        color: #fff;
+        background-color: var(--text-gray);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        display: none;
+        letter-spacing: 0.5px;
+    }
+
+    /* 4. Filtros Extra (Caja) */
+    .extra-filters {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        padding: 15px;
+        background-color: var(--bg-gray);
+        border-radius: 10px;
+        border: 1px dashed var(--border-light);
+    }
+    .filter-group {
         display: flex;
         flex-direction: column;
     }
-    .control-group label {
-        font-size: 8pt;
-        font-weight: 700;
-        color: #666;
-        margin-bottom: 5px;
+    .filter-group label {
+        font-size: 8.5pt; 
+        font-weight: bold; 
+        color: var(--text-gray); 
+        margin-bottom: 6px;
         text-transform: uppercase;
     }
-    .control-group input,
-    .control-group select {
-        font-family: 'Lato', sans-serif;
-        font-size: 10pt;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background-color: #fff;
+    .filter-select { min-width: 200px; }
+
+    /* 5. Barra de Fechas */
+    .date-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-top: 10px;
+        flex-wrap: wrap;
     }
-    .control-group.hidden {
-        display: none;
+    .date-presets {
+        display: flex;
+        gap: 0px; 
+        background-color: var(--bg-gray);
+        padding: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
     }
+    .preset-btn {
+        padding: 8px 16px;
+        font-size: 9.5pt;
+        font-weight: 500;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--text-gray);
+        transition: all 0.2s;
+        border-right: 1px solid var(--border-light);
+    }
+    .preset-btn:last-child { border-right: none; }
+
+    .preset-btn:hover { background-color: #e2e8f0; }
+    .preset-btn.active { 
+        background-color: #fff; 
+        color: var(--primary-color); 
+        font-weight: 700;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    }
+    
+    .date-inputs {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .date-inputs label {
+        font-size: 9pt;
+        font-weight: bold;
+        color: var(--text-gray);
+        text-transform: uppercase;
+    }
+    .date-inputs input { width: 130px; text-align: center; }
+
+    /* --- GRÁFICO Y TOOLBAR --- */
     .chart-container {
-        padding: 30px;
+        padding: 20px 40px 50px 40px;
         position: relative; 
-        height: 450px;
+        height: 500px;
     }
-    #priceChart {
-        display: none;
+    
+    .chart-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        height: 30px;
     }
-    #chartMessage {
-        text-align: center;
-        padding: 40px;
-        color: #888;
-        font-style: italic;
+    
+    .aggregation-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 9pt;
+        color: var(--text-gray);
+        background-color: var(--bg-gray);
+        padding: 4px 12px;
+        border-radius: 20px;
     }
-    .spinner {
-        display: none;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 40px;
-        height: 40px;
-        margin-top: -20px;
-        margin-left: -20px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #062541; /* Color de marca */
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+
+    .aggregation-control select {
+        padding: 2px;
+        border: none;
+        background: transparent;
+        font-size: 9pt;
+        cursor: pointer;
+        color: var(--primary-color);
+        font-weight: 700;
+        outline: none;
+        box-shadow: none;
     }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
+
     #resetZoomBtn {
         display: none;
-        position: absolute;
-        top: 10px;
-        right: 30px;
-        z-index: 10;
-        padding: 5px 10px;
-        font-size: 8pt;
-        font-weight: 700;
-        background-color: #f8f8f8;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        padding: 6px 16px;
+        background-color: #fff;
+        border: 1px solid var(--border-light);
+        border-radius: 20px;
         cursor: pointer;
+        font-size: 9pt;
+        font-weight: 600;
+        color: var(--primary-color);
+        box-shadow: var(--shadow-sm);
         transition: all 0.2s;
     }
     #resetZoomBtn:hover {
-        background-color: #eee;
-        border-color: #aaa;
+        background-color: var(--bg-gray);
+        transform: translateY(-1px);
+    }
+
+    .spinner {
+        display: none;
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 50px; height: 50px;
+        margin: -25px 0 0 -25px;
+        border: 4px solid var(--bg-gray);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+        z-index: 20;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    #chartMessage {
+        text-align: center;
+        color: #94a3b8;
+        font-style: normal;
+        font-weight: 500;
+        margin-top: 120px;
+        font-size: 16pt;
     }
 </style>
 {% endblock %}
@@ -114,323 +324,485 @@
 {% block content %}
 <div class="dashboard-container">
     
-    <h1 class="dashboard-title">Gráfica de Precios</h1>
+    <h1 class="dashboard-title">Evolución de Precios</h1>
 
-    <!-- Filtros (sin cambios) -->
-    <div class="controls">
-        <div class="control-group">
-            <label for="dataType">Tipo de Hacienda</label>
-            <select id="dataType">
-                <option value="faena">Faena </option>
-                <option value="invernada">Invernada </option>
+    <div class="controls-wrapper">
+        
+        <!-- 1. Selector de Tipo -->
+        <div class="type-selector">
+            <button class="type-btn active" data-value="faena" onclick="setHaciendaType('faena')">FAENA</button>
+            <button class="type-btn" data-value="invernada" onclick="setHaciendaType('invernada')">INVERNADA</button>
+        </div>
+
+        <!-- 2. Subtipos Invernada -->
+        <div id="invernadaSubtypes" class="sub-type-selector hidden">
+            <button class="chip-btn active" onclick="filterInvernadaCategory('MACHOS', this)">Machos</button>
+            <button class="chip-btn" onclick="filterInvernadaCategory('HEMBRAS', this)">Hembras</button>
+            <button class="chip-btn" onclick="filterInvernadaCategory('VIENTRES', this)">Vientres</button>
+            <button class="chip-btn" onclick="filterInvernadaCategory('TODOS', this)">Ver Todos</button>
+        </div>
+
+        <!-- 3. Categoría Principal -->
+        <div class="category-wrapper">
+            <select id="categorySelect" class="category-select">
+                <option value="">-- Cargando Categorías... --</option>
             </select>
+            <span id="dataCount" class="data-count-badge">0 datos</span>
         </div>
-        <div class="control-group">
-            <label for="categoryFilter">Categoría</label>
-            <select id="categoryFilter">
-                <option value="">-- Todas las Categorías --</option>
-            </select>
+
+        <!-- 4. Filtros Extra (Faena) -->
+        <div id="faenaFilters" class="extra-filters hidden">
+            <div class="filter-group">
+                <label>Raza</label>
+                <select id="razaSelect" class="filter-select">
+                    <option value="">-- Todas --</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Peso</label>
+                <select id="pesoSelect" class="filter-select">
+                    <option value="">-- Todos --</option>
+                </select>
+            </div>
         </div>
-        <div class="control-group hidden" id="razaFilterGroup">
-            <label for="razaFilter">Raza</label>
-            <select id="razaFilter">
-                <option value="">-- Todas las Razas --</option>
-            </select>
-        </div>
-        <div class="control-group hidden" id="pesoFilterGroup">
-            <label for="pesoFilter">Rango de Peso</label>
-            <select id="pesoFilter">
-                <option value="">-- Todos los Pesos --</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label for="startDate">Fecha Inicio</label>
-            <input type="date" id="startDate" placeholder="DD/MM/YYYY">
-        </div>
-        <div class="control-group">
-            <label for="endDate">Fecha Fin</label>
-            <input type="date" id="endDate" placeholder="DD/MM/YYYY">
+
+        <!-- 5. Selector de Fechas -->
+        <div class="date-toolbar">
+            <div class="date-presets">
+                <button class="preset-btn" onclick="setDateRange(7, this)">1 Sem</button>
+                <button class="preset-btn active" onclick="setDateRange(30, this)">1 Mes</button>
+                <button class="preset-btn" onclick="setDateRange(180, this)">6 Meses</button>
+                <button class="preset-btn" onclick="setDateRange(365, this)">1 Año</button>
+                <button class="preset-btn" onclick="setDateRange(1095, this)">3 Años</button>
+            </div>
+            <div class="date-inputs">
+                <label>Desde</label>
+                <input type="text" id="startDate" placeholder="DD/MM/YYYY">
+                <label>Hasta</label>
+                <input type="text" id="endDate" placeholder="DD/MM/YYYY">
+            </div>
         </div>
     </div>
 
-    <!-- Contenedor del Gráfico (sin cambios) -->
+    <!-- Gráfico y Toolbar -->
     <div class="chart-container">
         <div class="spinner" id="loadingSpinner"></div>
-        <button id="resetZoomBtn">Resetear Zoom</button>
+        
+        <div class="chart-toolbar">
+            <div class="aggregation-control">
+                <label for="aggregationSelect">Agrupación:</label>
+                <select id="aggregationSelect">
+                    <option value="auto" selected>Auto (Inteligente)</option>
+                    <option value="daily">Diaria</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                </select>
+            </div>
+            <button id="resetZoomBtn">Restablecer Zoom</button>
+        </div>
+
         <canvas id="priceChart"></canvas>
-        <p id="chartMessage">Selecciona un rango de fechas para ver los datos.</p>
+        <p id="chartMessage">Selecciona una categoría para comenzar.</p>
     </div>
 </div>
 {% endblock %}
 
-<!-- ========================================== -->
-<!-- --- SCRIPTS (CORREGIDOS) --- -->
-<!-- ========================================== -->
 {% block scripts %}
 <script>
-    // --- ========================================== ---
-    // --- INICIO DE CORRECCIÓN (ReferenceError) ---
-    // --- ========================================== ---
-    
-    // --- Referencias a elementos del DOM ---
-    const dataTypeSelect = document.getElementById('dataType');
-    const categorySelect = document.getElementById('categoryFilter');
-    const razaFilterGroup = document.getElementById('razaFilterGroup');
-    const razaFilter = document.getElementById('razaFilter');
-    const pesoFilterGroup = document.getElementById('pesoFilterGroup');
-    const pesoFilter = document.getElementById('pesoFilter');
-    
-    // --- ¡ESTAS LÍNEAS FALTABAN! ---
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    // --- 
-    
-    const chartMessage = document.getElementById('chartMessage');
+    // --- VARIABLES DE ESTADO ---
+    let currentType = 'faena'; 
+    let allCategories = { faena: [], invernada: [] };
+    let priceChart;
+    let fpStart, fpEnd;
+    let lastRawData = [];
+
+    // --- REFERENCIAS DOM ---
+    const categorySelect = document.getElementById('categorySelect');
+    const razaSelect = document.getElementById('razaSelect');
+    const pesoSelect = document.getElementById('pesoSelect');
+    const faenaFiltersDiv = document.getElementById('faenaFilters');
+    const invernadaSubtypesDiv = document.getElementById('invernadaSubtypes');
     const chartCanvas = document.getElementById('priceChart');
-    const ctx = chartCanvas.getContext('2d');
+    const ctx = chartCanvas.getContext('2d'); 
+    const chartMessage = document.getElementById('chartMessage');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const resetZoomBtn = document.getElementById('resetZoomBtn');
-    
-    // --- FIN DE CORRECCIÓN ---
-    
-    let priceChart;
-    let allCategories = { faena: [], invernada: [] }; 
+    const dataCountBadge = document.getElementById('dataCount');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const aggregationSelect = document.getElementById('aggregationSelect');
 
-    // Registrar el plugin de Zoom
+    // --- INICIALIZACIÓN ---
     Chart.register(ChartZoom.default ? ChartZoom.default : ChartZoom);
 
-    // --- (Resto de funciones JS sin cambios) ---
-    
-    function initChart() {
-        if (priceChart) priceChart.destroy(); 
-        chartCanvas.style.display = 'block';
-        chartMessage.style.display = 'none';
-        loadingSpinner.style.display = 'none';
+    window.addEventListener('load', async () => {
+        const config = {
+            altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d", locale: "es",
+            onClose: () => fetchChartData()
+        };
+        fpStart = flatpickr("#startDate", config);
+        fpEnd = flatpickr("#endDate", config);
         
+        // Carga inicial: seleccionar "1 Mes" como activo visualmente y cargar
+        const defaultBtn = document.querySelector('.preset-btn.active');
+        setDateRange(30, defaultBtn, false); 
+
+        await loadAllCategories();
+        setHaciendaType('faena');
+    });
+
+    // --- LÓGICA DE AGREGACIÓN ---
+    function aggregateData(rawData, forceMode = 'auto') {
+        if (!rawData || rawData.length === 0) return { labels: [], prices: [] };
+
+        const parseDate = (str) => {
+            if (!str) return new Date();
+            // Asumimos formato DD/MM/YYYY que viene de la API/BBDD
+            const [d, m, y] = str.split('/');
+            return new Date(y, m - 1, d);
+        };
+
+        // 1. Ordenar los datos crudos primero
+        const dataObjects = rawData.map(d => ({
+            date: parseDate(d.fecha_consulta || d.fecha_consulta_fin),
+            price: d.precio_promedio_kg,
+            originalDateStr: d.fecha_consulta || d.fecha_consulta_fin
+        })).sort((a, b) => a.date - b.date);
+
+        // ... (Lógica de determinación de modo igual) ...
+        let mode = forceMode;
+        if (mode === 'auto') {
+            const startDate = dataObjects[0].date;
+            const endDate = dataObjects[dataObjects.length - 1].date;
+            const daysDiff = (endDate - startDate) / (1000 * 60 * 60 * 24);
+            if (daysDiff <= 60) mode = 'daily';
+            else if (daysDiff <= 365) mode = 'weekly';
+            else mode = 'monthly';
+        }
+
+        if (mode === 'daily') {
+             return {
+                labels: dataObjects.map(d => d.originalDateStr),
+                prices: dataObjects.map(d => d.price)
+            };
+        }
+
+        let groupKeyFunction;
+        if (mode === 'weekly') {
+            groupKeyFunction = (d) => {
+                const onejan = new Date(d.date.getFullYear(), 0, 1);
+                const week = Math.ceil((((d.date - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+                // Clave ordenable: YYYY-WW
+                return `${d.date.getFullYear()}-${week.toString().padStart(2, '0')}`; 
+            };
+        } else { // monthly
+            // Clave ordenable: YYYY-MM
+            groupKeyFunction = (d) => `${d.date.getFullYear()}-${(d.date.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
+
+        const groups = {};
+        dataObjects.forEach(item => {
+            const key = groupKeyFunction(item);
+            if (!groups[key]) {
+                groups[key] = { sum: 0, count: 0, lastDate: item.originalDateStr, dateObj: item.date };
+            }
+            groups[key].sum += item.price;
+            groups[key].count += 1;
+            // Actualizamos lastDate para que sea la fecha más reciente del grupo
+            if (item.date > groups[key].dateObj) {
+                groups[key].lastDate = item.originalDateStr;
+                groups[key].dateObj = item.date;
+            }
+        });
+
+        const labels = [];
+        const prices = [];
+        
+        // CORRECCIÓN: Ordenar las claves explícitamente
+        const sortedKeys = Object.keys(groups).sort();
+
+        sortedKeys.forEach(key => {
+            const g = groups[key];
+            labels.push(g.lastDate);
+            prices.push(g.sum / g.count);
+        });
+
+        return { labels, prices };
+    }
+
+    // --- LÓGICA UI ACTUALIZADA ---
+    function setDateRange(days, btnElement, refresh=true) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - days);
+        
+        fpEnd.setDate(end);
+        fpStart.setDate(start);
+
+        // Gestión visual de la clase .active
+        if (btnElement) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+        
+        if(refresh) fetchChartData();
+    }
+
+    function setHaciendaType(type) {
+        currentType = type;
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === type);
+        });
+
+        if (type === 'faena') {
+            invernadaSubtypesDiv.classList.add('hidden');
+            populateSelect(categorySelect, allCategories.faena);
+        } else {
+            faenaFiltersDiv.classList.add('hidden');
+            invernadaSubtypesDiv.classList.remove('hidden');
+            filterInvernadaCategory('MACHOS', document.querySelector('.chip-btn')); 
+        }
+        
+        dataCountBadge.style.display = 'none';
+        razaSelect.value = ""; 
+        pesoSelect.value = "";
+        
+        if (priceChart) {
+            priceChart.destroy();
+            chartCanvas.style.display = 'none';
+            chartMessage.style.display = 'block';
+            chartMessage.textContent = "Selecciona una categoría para visualizar.";
+        }
+    }
+
+    async function loadAllCategories() {
+        try {
+            const res = await fetch('/api/categorias');
+            const data = await res.json();
+            allCategories = data;
+        } catch (e) { console.error(e); }
+    }
+
+    function filterInvernadaCategory(subtype, btnElement) {
+        document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+        if(btnElement) btnElement.classList.add('active');
+
+        let filtered = [];
+        if (subtype === 'TODOS') filtered = allCategories.invernada;
+        else {
+            filtered = allCategories.invernada.filter(cat => {
+                const c = cat.toLowerCase();
+                if (subtype === 'MACHOS') return c.includes('ternero') || c.includes('novill');
+                if (subtype === 'HEMBRAS') return c.includes('ternera') || (c.includes('vaquillona') && c.includes('kg'));
+                if (subtype === 'VIENTRES') return c.includes('vaca') || (c.includes('vaquillona') && !c.includes('kg'));
+                return true;
+            });
+        }
+        populateSelect(categorySelect, filtered);
+        if(filtered.length > 0) {
+            categorySelect.value = filtered[0];
+            fetchChartData();
+        }
+    }
+
+    // --- LISTENERS ---
+    categorySelect.addEventListener('change', async () => {
+        const cat = categorySelect.value;
+        razaSelect.value = ""; 
+        pesoSelect.value = "";
+        razaSelect.innerHTML = '<option value="">Cargando...</option>';
+        pesoSelect.innerHTML = '<option value="">Cargando...</option>';
+
+        if (currentType === 'faena') {
+            if (cat) {
+                await updateFaenaFilters();
+            } else {
+                faenaFiltersDiv.classList.add('hidden');
+            }
+        }
+        fetchChartData();
+    });
+
+    razaSelect.addEventListener('change', async () => {
+        if (currentType === 'faena') {
+            const razaSeleccionada = razaSelect.value;
+            pesoSelect.innerHTML = '<option value="">Filtrando pesos...</option>';
+            pesoSelect.disabled = true;
+            await updateFaenaFilters(razaSeleccionada); 
+            pesoSelect.disabled = false;
+        }
+        fetchChartData();
+    });
+
+    pesoSelect.addEventListener('change', fetchChartData);
+    
+    aggregationSelect.addEventListener('change', () => {
+        if (lastRawData.length > 0) {
+            const mode = aggregationSelect.value;
+            const processed = aggregateData(lastRawData, mode);
+            drawChart(processed.labels, processed.prices, lastRawData.length);
+        }
+    });
+
+    async function updateFaenaFilters(razaSeleccionada = null) {
+        const cat = categorySelect.value;
+        if (!cat) {
+            faenaFiltersDiv.classList.add('hidden');
+            return;
+        }
+
+        try {
+            let url = `/api/subcategorias?categoria=${encodeURIComponent(cat)}`;
+            if (razaSeleccionada && razaSeleccionada !== "") {
+                url += `&raza=${encodeURIComponent(razaSeleccionada)}`;
+            }
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.razas.length > 0 || data.pesos.length > 0) {
+                faenaFiltersDiv.classList.remove('hidden');
+                if (!razaSeleccionada) populateSelect(razaSelect, data.razas, "Todas");
+                populateSelect(pesoSelect, data.pesos, "Todos");
+            } else {
+                faenaFiltersDiv.classList.add('hidden');
+                razaSelect.innerHTML = '<option value="">-- Todas --</option>';
+                pesoSelect.innerHTML = '<option value="">-- Todos --</option>';
+            }
+        } catch (e) {
+            console.error("Error cargando subcategorías:", e);
+            faenaFiltersDiv.classList.add('hidden');
+        }
+    }
+
+    function populateSelect(el, items, defaultText="Seleccionar") {
+        const currentValue = el.value;
+        el.innerHTML = `<option value="">-- ${defaultText} --</option>`;
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item;
+            opt.textContent = item;
+            el.appendChild(opt);
+        });
+
+        if (currentValue && items.includes(currentValue)) {
+            el.value = currentValue;
+        } else {
+            el.value = ""; 
+        }
+    }
+
+    // --- FETCH Y DRAW ---
+    async function fetchChartData() {
+        const cat = categorySelect.value;
+        if (!cat) return; 
+
+        loadingSpinner.style.display = 'block';
+        chartMessage.style.display = 'none';
+        chartCanvas.style.display = 'none';
+        resetZoomBtn.style.display = 'none';
+        dataCountBadge.style.display = 'none';
+
+        const params = new URLSearchParams({
+            start: fpStart.input.value, 
+            end: fpEnd.input.value
+        });
+        
+        if (cat) params.append('categoria', cat);
+        if (currentType === 'faena' && !faenaFiltersDiv.classList.contains('hidden')) {
+            if (razaSelect.value) params.append('raza', razaSelect.value);
+            if (pesoSelect.value) params.append('rango_peso', pesoSelect.value);
+        }
+
+        try {
+            const res = await fetch(`/api/${currentType}?${params.toString()}`);
+            const rawData = await res.json();
+            lastRawData = rawData;
+
+            if (!rawData || rawData.length === 0) {
+                loadingSpinner.style.display = 'none';
+                chartMessage.textContent = "No hay datos para este rango/filtros.";
+                chartMessage.style.display = 'block';
+                if (priceChart) priceChart.destroy();
+                dataCountBadge.textContent = `0 datos`;
+                dataCountBadge.style.display = 'inline-block';
+                return;
+            }
+
+            const mode = aggregationSelect.value;
+            const processedData = aggregateData(rawData, mode);
+
+            drawChart(processedData.labels, processedData.prices, rawData.length);
+            
+            dataCountBadge.textContent = `${rawData.length} datos`;
+            dataCountBadge.style.display = 'inline-block';
+
+        } catch (e) {
+            console.error("Error fetch:", e);
+            loadingSpinner.style.display = 'none';
+            chartMessage.textContent = "Error de conexión.";
+            chartMessage.style.display = 'block';
+        }
+    }
+
+    function drawChart(labels, prices, totalCount) {
+        loadingSpinner.style.display = 'none';
+        chartCanvas.style.display = 'block';
+        
+        if (priceChart) priceChart.destroy();
+
+        const isAggregated = labels.length < totalCount;
+        const labelSuffix = isAggregated ? " (Promediado)" : "";
+        const colorLine = '#062541'; 
+
         priceChart = new Chart(ctx, {
-            type: 'line', 
+            type: 'line',
             data: {
-                labels: [], 
+                labels: labels,
                 datasets: [{
-                    label: 'Precio Promedio $/Kg',
-                    data: [], 
-                    borderColor: '#062541', // Color de marca
-                    backgroundColor: 'rgba(6, 37, 65, 0.1)', // Color de marca
+                    label: `Precio Promedio ($/Kg)${labelSuffix}`,
+                    data: prices,
+                    borderColor: colorLine,
+                    backgroundColor: 'rgba(6, 37, 65, 0.1)',
                     borderWidth: 2,
+                    tension: 0.3,
                     fill: true,
-                    tension: 0.1 
+                    pointRadius: isAggregated ? 3 : 1,
+                    pointHoverRadius: 5
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: { 
-                            callback: function(value) { 
-                                return '$' + value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
-                            } 
+                plugins: {
+                    zoom: {
+                        pan: { enabled: true, mode: 'x' },
+                        zoom: { 
+                            wheel: { enabled: true }, 
+                            pinch: { enabled: true }, 
+                            mode: 'x',
+                            onZoomComplete: () => resetZoomBtn.style.display = 'block'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `$ ${ctx.parsed.y.toLocaleString('es-AR')}`
                         }
                     }
                 },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) { label += ': '; }
-                                if (context.parsed.y !== null) {
-                                    label += '$' + context.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                }
-                                return label;
-                            }
-                        }
-                    },
-                    zoom: {
-                        pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
-                        zoom: {
-                            wheel: { enabled: true },
-                            pinch: { enabled: true },
-                            mode: 'x',
-                            onZoomComplete: () => { resetZoomBtn.style.display = 'block'; }
-                        }
+                scales: {
+                    y: { 
+                        beginAtZero: false,
+                        ticks: { callback: (v) => '$' + v.toLocaleString('es-AR') }
                     }
                 }
             }
         });
     }
-
-    async function loadCategories() {
-        try {
-            const response = await fetch('/api/categorias');
-            if (!response.ok) throw new Error('No se pudieron cargar las categorías');
-            allCategories = await response.json();
-            updateCategoryFilter(); 
-        } catch (error) {
-            console.error("Error en loadCategories:", error);
-            chartMessage.textContent = 'Error al cargar filtros de categoría.';
-        }
-    }
-    
-    function updateCategoryFilter() {
-        const currentType = dataTypeSelect.value; 
-        const categories = allCategories[currentType] || [];
-        populateSelect(categorySelect, categories, 'Todas las Categorías');
-        toggleSubCategoryFilters();
-    }
-
-    function toggleSubCategoryFilters() {
-        const currentType = dataTypeSelect.value;
-        if (currentType === 'faena') {
-            loadSubCategories(); 
-        } else {
-            razaFilterGroup.classList.add('hidden');
-            pesoFilterGroup.classList.add('hidden');
-            populateSelect(razaFilter, [], 'Todas las Razas');
-            populateSelect(pesoFilter, [], 'Todos los Pesos');
-            fetchChartData();
-        }
-    }
-
-    async function loadSubCategories() {
-        const currentType = dataTypeSelect.value;
-        const currentCategory = categorySelect.value;
-        if (currentType !== 'faena' || !currentCategory) {
-            razaFilterGroup.classList.add('hidden');
-            pesoFilterGroup.classList.add('hidden');
-            populateSelect(razaFilter, [], 'Todas las Razas');
-            populateSelect(pesoFilter, [], 'Todos los Pesos');
-        } else {
-            try {
-                const response = await fetch(`/api/subcategorias?tipo=faena&categoria=${encodeURIComponent(currentCategory)}`);
-                if (!response.ok) throw new Error('No se pudieron cargar subcategorías');
-                const data = await response.json(); 
-                populateSelect(razaFilter, data.razas, 'Todas las Razas');
-                populateSelect(pesoFilter, data.pesos, 'Todos los Pesos');
-                razaFilterGroup.classList.remove('hidden');
-                pesoFilterGroup.classList.remove('hidden');
-            } catch (error) {
-                console.error("Error en loadSubCategories:", error);
-                razaFilterGroup.classList.add('hidden');
-                pesoFilterGroup.classList.add('hidden');
-            }
-        }
-        fetchChartData();
-    }
-
-    function populateSelect(selectElement, options, defaultOptionText) {
-        selectElement.innerHTML = ''; 
-        const defaultOption = document.createElement('option');
-        defaultOption.value = "";
-        defaultOption.textContent = `-- ${defaultOptionText} --`;
-        selectElement.appendChild(defaultOption);
-        options.forEach(optionValue => {
-            const option = document.createElement('option');
-            option.value = optionValue;
-            option.textContent = optionValue;
-            selectElement.appendChild(option);
-        });
-    }
-    
-    async function fetchChartData() {
-        const type = dataTypeSelect.value;
-        const category = categorySelect.value;
-        
-        // ¡Esta línea ahora funciona!
-        const start = startDateInput.value; 
-        const end = endDateInput.value;
-        
-        const raza = razaFilter.value;
-        const rangoPeso = pesoFilter.value;
-
-        if (!start || !end) return; 
-        
-        loadingSpinner.style.display = 'block';
-        chartMessage.style.display = 'none';
-        if(priceChart) priceChart.destroy();
-        chartCanvas.style.display = 'none';
-        resetZoomBtn.style.display = 'none';
-
-        const params = new URLSearchParams({ start: start, end: end });
-        if (category) params.append('categoria', category);
-        if (raza) params.append('raza', raza);
-        if (rangoPeso) params.append('rango_peso', rangoPeso);
-        
-        let apiUrl = `/api/${type}?${params.toString()}`;
-
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) throw new Error('Error del servidor al buscar datos');
-            const data = await response.json();
-
-            if (data.length === 0) {
-                loadingSpinner.style.display = 'none';
-                chartMessage.textContent = 'No se encontraron datos para los filtros seleccionados.';
-                chartMessage.style.display = 'block';
-                return;
-            }
-
-            const labels = data.map(d => d.fecha_consulta || d.fecha_consulta_fin);
-            const prices = data.map(d => d.precio_promedio_kg);
-
-            initChart();
-            priceChart.data.labels = labels;
-            priceChart.data.datasets[0].data = prices;
-            
-            let label = "Precio Prom. $/Kg";
-            let specifics = [];
-            if (category) specifics.push(category);
-            if (raza) specifics.push(raza);
-            if (rangoPeso) specifics.push(rangoPeso + "kg");
-            if (specifics.length > 0) label += ` (${specifics.join(' - ')})`;
-            else label += ` (Promedio ${type})`;
-            priceChart.data.datasets[0].label = label;
-            
-            priceChart.update();
-            
-        } catch (error) {
-            console.error("Error en fetchChartData:", error);
-            loadingSpinner.style.display = 'none';
-            chartMessage.textContent = `Error al cargar los datos del gráfico.`;
-            chartMessage.style.display = 'block';
-        }
-    }
-
-    // --- Event Listeners (para carga automática) ---
-    dataTypeSelect.addEventListener('change', updateCategoryFilter);
-    categorySelect.addEventListener('change', loadSubCategories);
-    razaFilter.addEventListener('change', fetchChartData);
-    pesoFilter.addEventListener('change', fetchChartData);
     
     resetZoomBtn.addEventListener('click', () => {
-        if (priceChart) {
-            priceChart.resetZoom();
-            resetZoomBtn.style.display = 'none';
-        }
+        if(priceChart) { priceChart.resetZoom(); resetZoomBtn.style.display='none'; }
     });
 
-    // --- Inicialización (con Flatpickr) ---
-    (function() {
-        const flatpickrConfig = {
-            altInput: true,
-            altFormat: "d/m/Y",
-            dateFormat: "Y-m-d",
-            locale: "es",
-            onClose: function(selectedDates, dateStr, instance) {
-                fetchChartData();
-            }
-        };
-
-        const today = new Date();
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(today.getMonth() - 1);
-        
-        // ¡Esta línea ahora funciona!
-        flatpickr(startDateInput, { ...flatpickrConfig, defaultDate: oneMonthAgo });
-        flatpickr(endDateInput, { ...flatpickrConfig, defaultDate: today });
-        
-        loadCategories(); 
-    })();
 </script>
 {% endblock %}
