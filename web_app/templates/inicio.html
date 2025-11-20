@@ -1,60 +1,153 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto mt-8">
-    
-    <div class="grid md:grid-cols-2 gap-12 items-center mb-16">
-        <div class="space-y-6">
-            <div class="inline-block bg-blue-50 text-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-blue-100">
-                Sistema de Gestión
-            </div>
-            <h1 class="text-4xl md:text-5xl font-bold text-brand leading-tight">
-                Información precisa para su negocio ganadero.
+
+<div class="relative h-[550px] flex items-center mt-[-1px]"> <div class="absolute inset-0 z-0">
+        <img src="{{ url_for('static', filename='images/hero_bg.png') }}" 
+             class="w-full h-full object-cover" 
+             alt="Campo Argentino">
+        <div class="absolute inset-0 bg-black/30"></div>
+    </div>
+
+    <div class="container mx-auto px-6 relative z-10">
+        <div class="bg-white/95 backdrop-blur-sm p-8 md:p-10 max-w-xl rounded shadow-xl border-l-8 border-brand transform transition-all duration-700 hover:scale-[1.01]">
+            <span class="text-accent font-bold tracking-widest uppercase text-xs mb-2 block">Consignataria de Hacienda</span>
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-brand mb-4 leading-tight">
+                Confianza en sus negocios ganaderos
             </h1>
-            <p class="text-lg text-gray-600 leading-relaxed">
-                En <strong>Ortíz y Cía. Consignataria</strong> brindamos herramientas digitales para el seguimiento de valores de Faena e Invernada, facilitando la toma de decisiones comerciales.
+            <p class="text-gray-600 text-lg mb-8 leading-relaxed">
+                Brindamos un servicio integral de compra y venta, uniendo tradición con tecnología precisa.
             </p>
-            
-            <div class="pt-4 flex flex-col sm:flex-row gap-4">
-                <a href="{{ url_for('dashboard') }}" 
-                   class="px-8 py-3 bg-brand text-white font-semibold rounded-lg shadow-lg hover:bg-brand-light transition-colors text-center">
-                    Ver Evolución de Precios
+            <div class="flex flex-wrap gap-4">
+                <a href="{{ url_for('dashboard') }}" class="internal-link px-6 py-3 bg-brand text-white font-bold rounded shadow hover:bg-brand-light hover:shadow-lg transition-all uppercase text-sm tracking-wide">
+                    Ver Precios Online
+                </a>
+                <a href="#contacto" class="anchor-link px-6 py-3 border border-brand text-brand font-bold rounded hover:bg-gray-50 transition-colors uppercase text-sm tracking-wide">
+                    Contactar
                 </a>
             </div>
         </div>
-        
-        <div class="flex justify-center items-center bg-white rounded-2xl shadow-sm p-10 border border-gray-100">
-            <img src="{{ url_for('static', filename='images/logo_azul_circular.png') }}" 
-                 alt="Logo Ortíz y Cía" 
-                 class="w-64 h-64 object-contain opacity-90">
-        </div>
     </div>
-
-    <div class="grid md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
-            <div class="w-10 h-10 bg-brand text-white rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-brand transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            </div>
-            <h3 class="font-bold text-lg text-brand mb-2">Mercado Agroganadero</h3>
-            <p class="text-sm text-gray-500">Seguimiento diario de precios de faena, filtrado por categoría y calidad.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
-            <div class="w-10 h-10 bg-brand text-white rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-brand transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <h3 class="font-bold text-lg text-brand mb-2">Invernada</h3>
-            <p class="text-sm text-gray-500">Evolución histórica de terneros, vaquillonas y vientres.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
-            <div class="w-10 h-10 bg-brand text-white rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-brand transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            </div>
-            <h3 class="font-bold text-lg text-brand mb-2">Reportes</h3>
-            <p class="text-sm text-gray-500">Generación automática de informes PDF para archivo y análisis.</p>
-        </div>
-    </div>
-
 </div>
+
+<section class="py-16 bg-white relative overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <img src="{{ url_for('static', filename='images/logo_azul_circular.png') }}" 
+             class="h-[150%] opacity-[0.05] object-contain transform scale-110" 
+             alt="Marca de agua">
+    </div>
+    
+    <div class="container mx-auto px-6 text-center max-w-4xl relative z-10">
+        <h2 class="text-3xl font-display font-bold text-brand mb-6 uppercase tracking-wide">Nuestra Identidad</h2>
+        <div class="w-20 h-1 bg-accent mx-auto mb-10"></div>
+        <p class="text-xl text-gray-800 leading-relaxed mb-8 font-light">
+            En <strong>Ortíz y Cia. Consignatarios</strong> sabemos el valor del trabajo en el campo. Nos dedicamos a la intermediación de hacienda con un enfoque basado en la transparencia y el trato personalizado.
+        </p>
+    </div>
+</section>
+
+<section id="servicios" class="py-20 bg-gray-50 border-t border-gray-200 scroll-mt-24">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-display font-bold text-brand uppercase">Servicios Comerciales</h2>
+            <p class="text-gray-500 mt-2">Cubrimos todas las etapas del ciclo productivo.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-8 rounded shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Gordo</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Ventas particulares directas a frigorífico y remates feria. Buscamos las mejores condiciones comerciales.
+                </p>
+            </div>
+
+            <div class="bg-white p-8 rounded shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Invernada</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Conectamos las puntas del negocio. Terneros, novillitos y vaquillonas de calidad para reposición.
+                </p>
+            </div>
+
+            <div class="bg-white p-8 rounded shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Cría y Vientres</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Asesoramiento en genética y reposición de madres. Vacas preñadas, paridas y servicio.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="relative py-16 bg-brand-dark text-center">
+    <div class="absolute inset-0 z-0 opacity-30">
+        <img src="{{ url_for('static', filename='images/fondo_vacas_frio.png') }}" class="w-full h-full object-cover" alt="Fondo">
+    </div>
+    <div class="container mx-auto px-6 relative z-10">
+        <h2 class="text-3xl font-display font-bold text-white mb-4">INFORMACIÓN DE MERCADO</h2>
+        <p class="text-gray-300 max-w-2xl mx-auto mb-8 text-lg">
+            Acceda a nuestra <strong>gráfica interactiva </strong> exclusiva. Analice la evolución histórica de precios y tome decisiones informadas.
+        </p>
+        <a href="{{ url_for('dashboard') }}" class="internal-link inline-block px-8 py-3 border-2 border-white text-white font-bold rounded hover:bg-white hover:text-brand transition-colors uppercase tracking-wide hover:scale-105 transform duration-200">
+            Ir a la Gráfica de Precios
+        </a>
+    </div>
+</section>
+
+<section id="contacto" class="py-20 bg-white scroll-mt-24">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-display font-bold text-brand uppercase">Equipo Comercial</h2>
+            <p class="text-gray-500 mt-2">Atención personalizada y directa.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div class="text-center group">
+                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4 group-hover:border-accent transition-colors duration-300">
+                    <img src="https://ui-avatars.com/api/?name=Alvaro+Ortiz&background=062541&color=fff&size=200" alt="Alvaro" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <h3 class="text-lg font-bold text-brand uppercase">Álvaro Ortíz</h3>
+                <p class="text-sm text-accent font-semibold mb-3 uppercase tracking-wider">Comercial</p>
+                <a href="https://wa.me/5492262508401" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    2262 508401
+                </a>
+            </div>
+
+            <div class="text-center group">
+                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4 group-hover:border-accent transition-colors duration-300">
+                    <img src="https://ui-avatars.com/api/?name=Juan+Ortiz&background=062541&color=fff&size=200" alt="Juan" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <h3 class="text-lg font-bold text-brand uppercase">Juan Ortíz</h3>
+                <p class="text-sm text-accent font-semibold mb-3 uppercase tracking-wider">Comercial</p>
+                <a href="https://wa.me/5492281532214" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    2281 532214
+                </a>
+            </div>
+
+            <div class="text-center group">
+                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4 group-hover:border-accent transition-colors duration-300">
+                    <img src="https://ui-avatars.com/api/?name=Pedro+Bosch&background=062541&color=fff&size=200" alt="Pedro" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <h3 class="text-lg font-bold text-brand uppercase">Pedro Bosch</h3>
+                <p class="text-sm text-accent font-semibold mb-3 uppercase tracking-wider">Comercial</p>
+                <a href="https://wa.me/5491157365994" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    11 57365994
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
 {% endblock %}
