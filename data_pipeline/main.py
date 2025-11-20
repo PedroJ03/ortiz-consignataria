@@ -13,6 +13,12 @@ if project_root not in sys.path:
 # Cargar variables
 load_dotenv(os.path.join(project_root, '.env'))
 
+# Si no existe CLIENT_EMAILS, usamos ALERT_RECIPIENT como fallback
+RAW_RECIPIENTS = os.getenv('CLIENT_EMAILS', os.getenv('ALERT_RECIPIENT'))
+
+# Convertimos el string "mail1, mail2" en lista ['mail1', 'mail2']
+LISTA_DESTINATARIOS = [email.strip() for email in RAW_RECIPIENTS.split(',') if email.strip()]
+
 # --- 2. IMPORTACIONES ---
 try:
     from shared_code.database import db_manager
@@ -109,32 +115,31 @@ def ejecutar_pipeline_diario(enviar_email=True):
         # ---------------------------------------------------------
         if reportes_generados:
             if enviar_email:
-                if not RECIPIENT_EMAIL:
-                    logger.warning("No se configuró destinatario de email. Omitiendo envío.")
+                if not LISTA_DESTINATARIOS:
+                    logger.warning("No hay destinatarios configurados en CLIENT_EMAILS.")
                 else:
-                    logger.info(f"3. Enviando {len(reportes_generados)} reportes a {RECIPIENT_EMAIL}...")
+                    logger.info(f"3. Enviando reportes a {len(LISTA_DESTINATARIOS)} destinatarios...")
                     
                     asunto = f"Reporte de Precios Hacienda - {hoy_str}"
                     cuerpo = (f"Consignataria Ortiz y Cia. le acerca los reportes del día:\n\n"
-                              f"- Faena: {resumen_faena} registros procesados.\n"
-                              f"- Invernada: {resumen_invernada} registros procesados.\n\n"
+                              f"- Faena: {resumen_faena} registros.\n"
+                              f"- Invernada: {resumen_invernada} registros.\n\n"
                               f"Adjuntos encontrará los documentos PDF detallados.")
 
+                    # Pasamos la LISTA, el sender ya sabe manejar el BCC
                     exito = email_sender.send_report_email(
-                        RECIPIENT_EMAIL,
+                        LISTA_DESTINATARIOS,
                         asunto,
                         cuerpo,
                         reportes_generados
                     )
                     
                     if exito:
-                        logger.info("   -> Email enviado correctamente.")
+                        logger.info("   -> Email enviado correctamente a la lista de distribución.")
                     else:
                         logger.error("   -> Falló el envío del email.")
             else:
-                logger.info("3. Omitiendo envío de email (Modo silencioso --no-email).")
-        else:
-            logger.info("3. No hay reportes nuevos para enviar hoy.")
+                logger.info("3. Omitiendo envío de email (Modo silencioso).")
 
     except Exception as e:
         logger.exception("Excepción CRÍTICA no controlada en el Pipeline Principal.")
