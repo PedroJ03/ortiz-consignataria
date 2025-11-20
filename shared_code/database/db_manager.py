@@ -81,7 +81,7 @@ def insertar_datos_faena(conn, lista_datos_faena):
     if not lista_datos_faena: return 0
     
     sql = """
-    INSERT OR IGNORE INTO faena(
+    INSERT OR REPLACE INTO faena(
         fecha_extraccion, fecha_consulta, tipo_hacienda, categoria_original, raza, 
         rango_peso, precio_max_kg, precio_min_kg, precio_promedio_kg, 
         cabezas, kilos_total, importe_total
@@ -141,7 +141,7 @@ def insertar_datos_invernada(conn, lista_datos_invernada):
         return 0
 
     sql = """
-    INSERT OR IGNORE INTO invernada (
+    INSERT OR REPLACE INTO invernada (
         fecha_extraccion, fecha_consulta_inicio, fecha_consulta_fin, tipo_hacienda, 
         categoria_original, precio_promedio_kg, cabezas, variacion_semanal_precio
     ) VALUES (
