@@ -124,6 +124,10 @@ El sistema cuenta con `shared_code/logger_config.py` que gestiona la salud de la
 1.  **Logs Locales (`logs/app.log`):** Registro histórico de operaciones. Usa `RotatingFileHandler` (máx 5MB, 5 backups) para no saturar el disco.
 2.  **Alertas SMTP:** Si ocurre un error de nivel `ERROR` o `CRITICAL` (ej: cambio de estructura HTML en MAG, fallo de conexión a BD), el sistema envía un email inmediato al `ALERT_RECIPIENT`.
 
+## ☁️ Despliegue
+El proyecto está configurado para desplegarse en **PythonAnywhere** debido a su compatibilidad nativa con SQLite persistente y Tareas Programadas.
+* Consultar `docs/ADR_002_Seleccion_Infraestructura.md` para detalles de la decisión arquitectónica.
+
 ## 📄 Licencia y Créditos
 
 Desarrollado exclusivamente para **Ortíz y Cía. Consignataria**.
