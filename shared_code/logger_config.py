@@ -106,7 +106,7 @@ def setup_logger(name):
             mailhost=(SMTP_SERVER, SMTP_PORT),
             fromaddr=SMTP_USER,
             toaddrs=[ALERT_RECIPIENT],
-            subject=f"🚨 ALERTA CRÍTICA: {name}",
+            subject=f"Sistema Consignataria Ortiz🚨 ALERTA CRÍTICA: {name}",
             credentials=(SMTP_USER, SMTP_PASSWORD),
             secure=() # Tupla vacía activa TLS
         )

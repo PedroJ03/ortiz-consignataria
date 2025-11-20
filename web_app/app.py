@@ -1,6 +1,6 @@
 import sys
 import os
-from flask import Flask, jsonify, request, render_template, abort, g
+from flask import Flask, jsonify, request, render_template, abort, g, send_from_directory
 from flask_cors import CORS
 from datetime import datetime
 import sqlite3
@@ -188,11 +188,40 @@ def api_subcategorias():
         logger.error(f"Error obteniendo subcategorías para '{categoria}': {e}")
         return jsonify({"error": "Error interno."}), 500
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static', 'images'),
+        'logo_blanco_circular.png',
+        mimetype='image/png'
+    )
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # Logueamos como WARNING para que NO envíe email, pero quede registro
+    logger.warning(f"404 Not Found: {request.url}")
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    # Este SI es crítico, logueamos como ERROR (envía email)
+    logger.error(f"Error 500 Servidor: {e}")
+    return render_template('500.html'), 500
+
 # Manejador de errores global (para atrapar lo que se nos escape)
 @app.errorhandler(Exception)
 def handle_exception(e):
-    logger.exception(f"Excepción no manejada en Flask: {e}")
-    return render_template("error_generico.html"), 500 # Opcional: crear este template
+    # Importamos HTTPException para filtrar errores HTTP comunes
+    from werkzeug.exceptions import HTTPException
+    
+    # Si es un error HTTP conocido (como 404, 405, etc) que se nos pasó
+    if isinstance(e, HTTPException):
+        logger.warning(f"HTTP Exception: {e}")
+        return e
+
+    # Si es un error de Python real (código roto), enviamos ALERTA
+    logger.exception(f"Excepción NO manejada en Flask: {e}")
+    return render_template("500.html"), 500
 
 if __name__ == '__main__':
     # En desarrollo (debug=True), Flask recarga y duplica logs a veces, es normal.
