@@ -9,7 +9,7 @@ Plataforma digital integral para la captura, almacenamiento, análisis y visuali
 
 ## 📋 Descripción del Proyecto
 
-Este sistema automatiza la inteligencia de mercado para la consignataria **"Ortíz y Cía. Consigantaria"**. Su objetivo es eliminar la recolección manual de datos y proveer herramientas de decisión en tiempo real mediante un Dashboard interactivo y reportes automatizados.
+Este sistema automatiza la inteligencia de mercado para la consignataria **"Ortíz y Cía. Consignatarios"**. Su objetivo es eliminar la recolección manual de datos y proveer herramientas de decisión en tiempo real mediante un Dashboard interactivo y reportes automatizados.
 
 **Funcionalidades Principales:**
 * **Pipeline de Datos (ETL):** Scrapers robustos que extraen datos diarios del Mercado Agroganadero (MAG) y tendencias semanales de Invernada. Incluye manejo de sesiones dinámicas y reintentos automáticos.
@@ -130,4 +130,4 @@ El proyecto está configurado para desplegarse en **PythonAnywhere** debido a su
 
 ## 📄 Licencia y Créditos
 
-Desarrollado exclusivamente para **Ortíz y Cía. Consignataria**.
+Desarrollado exclusivamente para **Ortíz y Cia. Consignatarios**.
