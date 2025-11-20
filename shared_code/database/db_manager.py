@@ -1,20 +1,29 @@
 import sqlite3
 import os
+import sys # <--- Agregar sys
 from datetime import datetime
+
+# --- LOGGING SETUP ---
+# Asegurar que encuentra el logger_config subiendo niveles si es necesario
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from shared_code.logger_config import setup_logger
+logger = setup_logger('DB_Manager')
 
 # --- CONFIGURACIÓN DE RUTAS ---
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DB_PATH = os.path.join(PROJECT_ROOT, 'precios_historicos.db') 
 
 def get_db_connection():
-    """Crea y devuelve una conexión a la base de datos."""
     try:
         conn = sqlite3.connect(DB_PATH)
-        # Habilitamos row_factory para acceder a columnas por nombre
         conn.row_factory = sqlite3.Row 
         return conn
     except sqlite3.Error as e:
-        print(f"Error crítico conectando a BD: {e}")
+        logger.critical(f"Error crítico conectando a BD en {DB_PATH}: {e}") # <--- CAMBIO AQUÍ
         return None
 
 def crear_tablas(conn):
