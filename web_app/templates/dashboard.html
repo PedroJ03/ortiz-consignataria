@@ -68,9 +68,6 @@
                     </select>
                 </div>
 
-                <button type="button" id="btn-actualizar" class="w-full mt-4 bg-brand hover:bg-brand-light text-white font-bold py-3 rounded shadow transition-colors text-sm uppercase tracking-wide">
-                    Actualizar Gráfica
-                </button>
             </form>
         </div>
     </div>
@@ -138,10 +135,29 @@
     let allInvernadaCategories = [];
 
     // Configurar Flatpickr
-    const commonConfig = { dateFormat: "d/m/Y", locale: "es", disableMobile: "true" };
-    const startDefault = new Date(); startDefault.setMonth(startDefault.getMonth() - 6); // Default 6 meses
+// --- CONFIGURACIÓN FLATPICKR (Con evento onChange) ---
+    const commonConfig = { 
+        dateFormat: "d/m/Y", 
+        locale: "es", 
+        disableMobile: "true",
+        onChange: function(selectedDates, dateStr, instance) {
+            // Sincronizar fecha y actualizar si tenemos ambas
+            if (instance.element.id === 'date-start') startDateGlobal = selectedDates[0];
+            if (instance.element.id === 'date-end') endDateGlobal = selectedDates[0];
+            
+            if (startDateGlobal && endDateGlobal) {
+                actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
+            }
+        }
+    };
+    const startDefault = new Date(); startDefault.setMonth(startDefault.getMonth() - 6);
+    const endDefault = new Date();
+    
+    startDateGlobal = startDefault;
+    endDateGlobal = endDefault;
+
     const fpStart = flatpickr("#date-start", { ...commonConfig, defaultDate: startDefault });
-    const fpEnd = flatpickr("#date-end", { ...commonConfig, defaultDate: new Date() });
+    const fpEnd = flatpickr("#date-end", { ...commonConfig, defaultDate: endDefault });
 
     // --- UI & MODOS ---
     function cambiarModo(modo) {
@@ -200,7 +216,47 @@
         const p = document.getElementById('peso'); p.innerHTML = '<option value="">-</option>'; p.disabled = true;
     }
 
-    // --- LÓGICA INVERNADA ---
+    // --- LISTENERS AUTOMÁTICOS (LIVE FILTERING) ---
+    
+    // 1. Cambio en Categoría
+    document.getElementById('categoria').addEventListener('change', async function() {
+        const cat = this.value;
+        if (!cat) return;
+        
+        // Si es Faena, cargar subniveles
+        if (currentMode === 'faena') {
+            const res = await fetch(`/api/subcategorias?categoria=${encodeURIComponent(cat)}`);
+            const data = await res.json();
+            
+            const selRaza = document.getElementById('raza');
+            selRaza.innerHTML = '<option value="">Todas</option>'; selRaza.disabled = false;
+            data.razas.forEach(r => agregarOpcion(selRaza, r));
+            
+            document.getElementById('peso').innerHTML = '<option value="">Todos</option>';
+            await cargarPesos(cat, null);
+        }
+        
+        actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
+    });
+    // 2. Cambio en Raza
+    document.getElementById('raza').addEventListener('change', async function() {
+        await cargarPesos(document.getElementById('categoria').value, this.value);
+        actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
+    });
+
+    // 3. Cambio en Peso
+    document.getElementById('peso').addEventListener('change', function() {
+        actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
+    });
+    
+    // 4. Cambio en Agrupación
+    document.getElementById('agrupacion-selector').addEventListener('change', function() {
+        // Solo re-procesamos los datos locales, no hace falta fetch
+        // Pero para simplificar y asegurar consistencia, llamamos a actualizarGrafico
+        actualizarGrafico(); 
+    });
+
+    // Helper para Invernada (Botones)
     function filtrarCategoriasInvernada(tipo) {
         document.querySelectorAll('.btn-subtipo').forEach(b => {
             if (b.innerText.includes(tipo === 'Macho' ? 'Machos' : tipo === 'Hembra' ? 'Hembras' : 'Vientres')) {
@@ -210,6 +266,7 @@
             }
         });
 
+        // Filtrar array local
         const selectCat = document.getElementById('categoria');
         selectCat.innerHTML = '<option value="">Seleccione Categoría</option>';
         
@@ -226,9 +283,10 @@
         });
 
         filtradas.forEach(cat => agregarOpcion(selectCat, cat));
+        // No actualizamos gráfico aquí, esperamos a que el usuario elija categoría
     }
 
-    // --- CASCADA FAENA ---
+        // --- CASCADA FAENA ---
     document.getElementById('categoria').addEventListener('change', async function() {
         const cat = this.value;
         if (!cat || currentMode === 'invernada') return;
@@ -248,7 +306,7 @@
         cargarPesos(document.getElementById('categoria').value, this.value);
     });
 
-    async function cargarPesos(cat, raza) {
+async function cargarPesos(cat, raza) {
         let url = `/api/subcategorias?categoria=${encodeURIComponent(cat)}`;
         if (raza) url += `&raza=${encodeURIComponent(raza)}`;
         const res = await fetch(url);
@@ -258,64 +316,19 @@
         data.pesos.forEach(p => agregarOpcion(sel, p));
     }
 
-    // --- DOWNSAMPLING + AGREGACIÓN VOLUMEN ---
-    function procesarDatos(data) {
-        const modoAgrupacion = document.getElementById('agrupacion-selector').value;
+    // --- LÓGICA CENTRAL DE ACTUALIZACIÓN ---
+    
+    // Variable global para guardar los datos crudos y no refetchear solo por cambiar agrupación
+    let lastRawData = []; 
+
+    async function actualizarGrafico() {
+        const start = startDateGlobal;
+        const end = endDateGlobal;
         
-        if (modoAgrupacion === 'diario') return data;
-        
-        let usarMes = false;
-        let usarSemana = false;
-
-        if (modoAgrupacion === 'auto') {
-            if (data.length > 300) usarMes = true;
-            else if (data.length > 60) usarSemana = true;
-            else return data;
-        } else {
-            if (modoAgrupacion === 'mensual') usarMes = true;
-            if (modoAgrupacion === 'semanal') usarSemana = true;
-        }
-
-        const agrupados = {};
-        
-        data.forEach(item => {
-            const dateStr = currentMode === 'faena' ? item.fecha_consulta : item.fecha_consulta_fin;
-            const [d, m, y] = dateStr.split('/');
-            const dateObj = new Date(y, m - 1, d);
-            
-            let key;
-            if (usarMes) {
-                key = `${m}/${y}`; 
-            } else if (usarSemana) {
-                const day = dateObj.getDay(), diff = dateObj.getDate() - day + (day == 0 ? -6 : 1);
-                const monday = new Date(dateObj.setDate(diff));
-                key = monday.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            } else {
-                key = dateStr;
-            }
-
-            if (!agrupados[key]) agrupados[key] = { sumPrecio: 0, sumCabezas: 0, count: 0 };
-            agrupados[key].sumPrecio += item.precio_promedio_kg;
-            agrupados[key].sumCabezas += (item.cabezas || 0); // Sumar volumen
-            agrupados[key].count += 1;
-        });
-
-        return Object.keys(agrupados).map(key => ({
-            fecha_consulta: key, 
-            fecha_consulta_fin: key,
-            precio_promedio_kg: agrupados[key].sumPrecio / agrupados[key].count, // Promedio
-            cabezas: agrupados[key].sumCabezas // Suma Total
-        }));
-    }
-
-    // --- GRÁFICO MIXTO ---
-    document.getElementById('btn-actualizar').addEventListener('click', async () => {
-        const start = fpStart.selectedDates[0];
-        const end = fpEnd.selectedDates[0];
-        if (!start || !end) { alert("Seleccione fechas"); return; }
+        if (!start || !end) return; // Aún falta una fecha
 
         const cat = document.getElementById('categoria').value;
-        if (!cat) { alert("Seleccione Categoría"); return; }
+        if (!cat) return; // Sin categoría no graficamos
 
         const isoStart = start.toISOString().split('T')[0];
         const isoEnd = end.toISOString().split('T')[0];
@@ -335,6 +348,7 @@
 
             const res = await fetch(url);
             const rawData = await res.json();
+            lastRawData = rawData; // Guardar para uso local
 
             actualizarKPIs(rawData);
             const chartData = procesarDatos(rawData);
@@ -342,7 +356,54 @@
 
         } catch(e) { console.error(e); } 
         finally { document.getElementById('loading-spinner').classList.add('hidden'); }
-    });
+    }
+
+    function procesarDatos(data) {
+        const modoAgrupacion = document.getElementById('agrupacion-selector').value;
+        if (modoAgrupacion === 'diario') return data;
+        
+        let usarMes = false;
+        let usarSemana = false;
+
+        if (modoAgrupacion === 'auto') {
+            if (data.length > 300) usarMes = true;
+            else if (data.length > 60) usarSemana = true;
+            else return data;
+        } else {
+            if (modoAgrupacion === 'mensual') usarMes = true;
+            if (modoAgrupacion === 'semanal') usarSemana = true;
+        }
+
+        const agrupados = {};
+        data.forEach(item => {
+            const dateStr = currentMode === 'faena' ? item.fecha_consulta : item.fecha_consulta_fin;
+            const [d, m, y] = dateStr.split('/');
+            const dateObj = new Date(y, m - 1, d);
+            
+            let key;
+            if (usarMes) {
+                key = `${m}/${y}`; 
+            } else if (usarSemana) {
+                const day = dateObj.getDay(), diff = dateObj.getDate() - day + (day == 0 ? -6 : 1);
+                const monday = new Date(dateObj.setDate(diff));
+                key = monday.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } else {
+                key = dateStr;
+            }
+
+            if (!agrupados[key]) agrupados[key] = { sumPrecio: 0, sumCabezas: 0, count: 0 };
+            agrupados[key].sumPrecio += item.precio_promedio_kg;
+            agrupados[key].sumCabezas += (item.cabezas || 0);
+            agrupados[key].count += 1;
+        });
+
+        return Object.keys(agrupados).map(key => ({
+            fecha_consulta: key, 
+            fecha_consulta_fin: key,
+            precio_promedio_kg: agrupados[key].sumPrecio / agrupados[key].count,
+            cabezas: agrupados[key].sumCabezas
+        }));
+    }
 
     function actualizarKPIs(data) {
         if (!data.length) {
@@ -388,80 +449,45 @@
                         pointBackgroundColor: '#FFC82C',
                         yAxisID: 'y',
                         tension: 0.3,
-                        order: 1 // Dibujar encima de las barras
+                        order: 1
                     },
                     {
                         type: 'bar',
                         label: 'Cabezas (Volumen)',
                         data: volumen,
-                        backgroundColor: 'rgba(200, 200, 200, 0.3)', // Gris muy suave
+                        backgroundColor: 'rgba(200, 200, 200, 0.3)', 
                         barPercentage: 0.6,
                         yAxisID: 'y1',
-                        order: 2 // Fondo
+                        order: 2
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
+                interaction: { mode: 'index', intersect: false },
                 plugins: { 
-                    legend: { 
-                        display: true,
-                        labels: { usePointStyle: true, boxWidth: 6 }
-                    },
+                    legend: { display: true, labels: { usePointStyle: true, boxWidth: 6 } },
                     tooltip: {
-                        backgroundColor: '#062541',
-                        titleColor: '#FFC82C',
+                        backgroundColor: '#062541', titleColor: '#FFC82C',
                         callbacks: {
                             label: function(context) {
                                 let label = context.dataset.label || '';
                                 if (label) label += ': ';
-                                if (context.dataset.type === 'line') {
-                                    return label + '$ ' + context.parsed.y.toLocaleString('es-AR');
-                                }
+                                if (context.dataset.type === 'line') return label + '$ ' + context.parsed.y.toLocaleString('es-AR');
                                 return label + context.parsed.y.toLocaleString('es-AR');
                             }
                         }
                     },
                     zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'x', // Permitir arrastrar horizontalmente
-                        },
-                        zoom: {
-                            wheel: {
-                                enabled: true, // Zoom con rueda del mouse
-                            },
-                            pinch: {
-                                enabled: true // Zoom pellizcando en móvil
-                            },
-                            mode: 'x', // Solo zoom horizontal (eje de tiempo)
-                        }
+                        pan: { enabled: true, mode: 'x' },
+                        zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
                     }
                 },
                 scales: {
-                    y: { 
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        grid: { color: '#f3f4f6' },
-                        ticks: { callback: v => '$'+v }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: false, // Ocultar eje derecho para limpieza visual (o true si prefieres verlo)
-                        position: 'right',
-                        grid: { drawOnChartArea: false }, // No dibujar líneas horizontales para volumen
-                        min: 0 
-                    },
-                    x: { 
-                        grid: { display: false },
-                        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
-                    }
+                    y: { type: 'linear', display: true, position: 'left', grid: { color: '#f3f4f6' }, ticks: { callback: v => '$'+v } },
+                    y1: { type: 'linear', display: false, position: 'right', grid: { drawOnChartArea: false }, min: 0 },
+                    x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } }
                 }
             }
         });
