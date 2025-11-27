@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Administración - Ortiz y Cia. Consignatarios{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="bg-brand-dark p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-display font-bold text-white uppercase tracking-wider">Panel de Control</h1>
+                <p class="text-gray-400 text-sm">Gestión integral del sistema.</p>
+            </div>
+            <span class="bg-accent text-brand font-bold px-3 py-1 rounded text-xs uppercase">Superusuario</span>
+        </div>
+
+        <div class="p-6">
+            <div class="flex gap-4 mb-6 border-b border-gray-200 pb-1">
+                <button onclick="switchTab('lotes')" id="btn-lotes" class="tab-btn text-brand font-bold border-b-2 border-brand pb-2 transition-colors">Publicaciones</button>
+                <button onclick="switchTab('usuarios')" id="btn-usuarios" class="tab-btn text-gray-500 font-medium pb-2 hover:text-brand transition-colors">Usuarios</button>
+            </div>
+
+            <div id="tab-lotes">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-500 font-bold uppercase">
+                            <tr>
+                                <th class="px-4 py-3">Fecha</th>
+                                <th class="px-4 py-3">Vendedor</th>
+                                <th class="px-4 py-3">Título</th>
+                                <th class="px-4 py-3">Estado</th>
+                                <th class="px-4 py-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for p in publicaciones %}
+                            <tr class="hover:bg-gray-50" id="row-lote-{{ p.id }}">
+                                <td class="px-4 py-3 text-gray-500">{{ p.fecha_publicacion }}</td>
+                                <td class="px-4 py-3 font-bold text-brand">{{ p.vendedor }}</td>
+                                <td class="px-4 py-3">{{ p.titulo }}</td>
+                                <td class="px-4 py-3">
+                                    <span id="badge-lote-{{ p.id }}" class="text-xs font-bold px-2 py-1 rounded 
+                                        {{ 'bg-green-100 text-green-800' if p.activo else 'bg-red-100 text-red-800' }}">
+                                        {{ 'ACTIVO' if p.activo else 'PAUSADO' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right flex justify-end gap-3 items-center">
+                                    <button onclick="toggleLote({{ p.id }})" id="btn-toggle-lote-{{ p.id }}" class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase cursor-pointer">
+                                        {{ 'Pausar' if p.activo else 'Activar' }}
+                                    </button>
+                                    
+                                    <span class="text-gray-300">|</span>
+                                    
+                                    <form action="{{ url_for('admin_borrar_lote', id=p.id) }}" method="POST" onsubmit="return confirm('¿Eliminar definitivamente?');">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase">Borrar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="p-6 text-center text-gray-400 italic">No hay publicaciones registradas.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-usuarios" class="hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-500 font-bold uppercase">
+                            <tr>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Nombre</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Rol</th>
+                                <th class="px-4 py-3 text-right">Permisos</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for u in usuarios %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-gray-400">#{{ u.id }}</td>
+                                <td class="px-4 py-3 font-bold text-brand">{{ u.nombre_completo }}</td>
+                                <td class="px-4 py-3">{{ u.email }}</td>
+                                <td class="px-4 py-3">
+                                    <span id="badge-user-{{ u.id }}" class="px-2 py-0.5 rounded text-xs font-bold 
+                                        {{ 'text-green-600 border border-green-200 bg-green-50' if u.es_admin else 'text-gray-400' }}">
+                                        {{ 'ADMIN' if u.es_admin else 'Usuario' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    {% if u.id != current_user.id %}
+                                        <button onclick="toggleUserAdmin({{ u.id }})" id="btn-toggle-user-{{ u.id }}" class="text-xs font-bold underline cursor-pointer {{ 'text-red-500' if u.es_admin else 'text-green-600' }}">
+                                            {{ 'Quitar Admin' if u.es_admin else 'Hacer Admin' }}
+                                        </button>
+                                    {% else %}
+                                        <span class="text-gray-400 text-xs italic">Tú</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. GESTIÓN DE PESTAÑAS (Memoria)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Recuperar última pestaña o usar 'lotes' por defecto
+        const activeTab = localStorage.getItem('adminActiveTab') || 'lotes';
+        switchTab(activeTab);
+    });
+
+    function switchTab(tabName) {
+        // Guardar preferencia
+        localStorage.setItem('adminActiveTab', tabName);
+
+        // Ocultar todo
+        document.getElementById('tab-lotes').classList.add('hidden');
+        document.getElementById('tab-usuarios').classList.add('hidden');
+        document.getElementById('btn-lotes').className = "tab-btn text-gray-500 font-medium pb-2 hover:text-brand transition-colors";
+        document.getElementById('btn-usuarios').className = "tab-btn text-gray-500 font-medium pb-2 hover:text-brand transition-colors";
+
+        // Mostrar activo
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        document.getElementById('btn-' + tabName).className = "tab-btn text-brand font-bold border-b-2 border-brand pb-2 transition-colors";
+    }
+
+    // 2. ACCIONES AJAX (Sin Recarga)
+    
+    async function toggleLote(id) {
+        const btn = document.getElementById(`btn-toggle-lote-${id}`);
+        const badge = document.getElementById(`badge-lote-${id}`);
+        
+        // Feedback visual inmediato (Loading)
+        const originalText = btn.innerText;
+        btn.innerText = "...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/toggle_lote/${id}`, { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                // Actualizar UI según el nuevo estado
+                if (data.activo) {
+                    badge.className = "text-xs font-bold px-2 py-1 rounded bg-green-100 text-green-800";
+                    badge.innerText = "ACTIVO";
+                    btn.innerText = "PAUSAR";
+                } else {
+                    badge.className = "text-xs font-bold px-2 py-1 rounded bg-red-100 text-red-800";
+                    badge.innerText = "PAUSADO";
+                    btn.innerText = "ACTIVAR";
+                }
+            } else {
+                alert("Error: " + (data.msg || "No se pudo actualizar"));
+                btn.innerText = originalText;
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error de conexión");
+            btn.innerText = originalText;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function toggleUserAdmin(id) {
+        const btn = document.getElementById(`btn-toggle-user-${id}`);
+        const badge = document.getElementById(`badge-user-${id}`);
+        
+        btn.innerText = "...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/toggle_user/${id}`, { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                if (data.es_admin) {
+                    badge.className = "px-2 py-0.5 rounded text-xs font-bold text-green-600 border border-green-200 bg-green-50";
+                    badge.innerText = "ADMIN";
+                    btn.className = "text-xs font-bold underline cursor-pointer text-red-500";
+                    btn.innerText = "Quitar Admin";
+                } else {
+                    badge.className = "px-2 py-0.5 rounded text-xs font-bold text-gray-400";
+                    badge.innerText = "Usuario";
+                    btn.className = "text-xs font-bold underline cursor-pointer text-green-600";
+                    btn.innerText = "Hacer Admin";
+                }
+            } else {
+                alert(data.msg);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error de conexión");
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4">
+    
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="bg-brand p-6 text-white">
+            <h2 class="text-2xl font-display font-bold uppercase tracking-wide">Publicar Nuevo Lote</h2>
+            <p class="text-blue-200 text-sm">Complete los datos para ofrecer su hacienda al mercado.</p>
+        </div>
+
+        <form action="{{ url_for('publicar') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Título del Lote</label>
+                <input type="text" name="titulo" required placeholder="Ej: 50 Terneros Angus Colorados" 
+                       class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Categoría</label>
+                    <select name="categoria" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none bg-white">
+                        <option value="Invernada">Invernada</option>
+                        <option value="Gordo">Gordo / Faena</option>
+                        <option value="Cria">Cría / Vientres</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Raza / Calidad</label>
+                    <input type="text" name="raza" placeholder="Ej: Angus, Hereford, Cruza..." 
+                           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Cabezas</label>
+                    <input type="number" name="cantidad" required placeholder="0" 
+                           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Peso Promedio (Kg)</label>
+                    <input type="number" name="peso" required placeholder="0" 
+                           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Precio ($/Kg o Bulto)</label>
+                    <input type="number" name="precio" placeholder="A Consultar" 
+                           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Ubicación de la Hacienda</label>
+                <input type="text" name="ubicacion" required placeholder="Localidad, Provincia" 
+                       class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Descripción Adicional</label>
+                <textarea name="descripcion" rows="3" placeholder="Detalles sanitarios, plazo de pago, etc." 
+                          class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none"></textarea>
+            </div>
+
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors">
+                <label class="cursor-pointer block">
+                    <span class="block text-gray-500 text-sm mb-2">Haga clic para subir una foto principal</span>
+                    <input type="file" name="imagen" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand hover:file:bg-blue-100 mx-auto"/>
+                </label>
+            </div>
+
+            <div class="flex justify-end pt-4">
+                <button type="submit" class="px-8 py-3 bg-accent text-brand font-bold rounded-lg shadow hover:bg-white transition-all uppercase tracking-wide">
+                    Publicar Lote
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

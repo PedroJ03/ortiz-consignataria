@@ -46,46 +46,149 @@
     </div>
 </section>
 
-<section id="servicios" class="py-20 bg-gray-50 border-t border-gray-200 scroll-mt-24">
-    <div class="container mx-auto px-6">
+<section id="servicios" class="py-20 bg-brand scroll-mt-24 relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+    <div class="container mx-auto px-6 relative z-10">
         <div class="text-center mb-12">
-            <h2 class="text-3xl font-display font-bold text-brand uppercase">Servicios Comerciales</h2>
-            <p class="text-gray-500 mt-2">Cubrimos todas las etapas del ciclo productivo.</p>
+            <h2 class="text-3xl font-display font-bold text-white uppercase">Servicios Comerciales</h2>
+            <p class="text-gray-300 mt-2">Cubrimos todas las etapas del ciclo productivo.</p>
         </div>
 
         <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+            <div class="bg-white p-8 rounded shadow-xl border-b-4 border-accent hover:-translate-y-2 transition-transform duration-300 group">
                 <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 </div>
                 <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Gordo</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">
+                <p class="text-gray-600 text-sm leading-relaxed text-center">
                     Ventas particulares directas a frigorífico y remates feria. Buscamos las mejores condiciones comerciales.
                 </p>
             </div>
 
-            <div class="bg-white p-8 rounded shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+            <div class="bg-white p-8 rounded shadow-xl border-b-4 border-accent hover:-translate-y-2 transition-transform duration-300 group">
                 <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                 </div>
                 <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Invernada</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">
+                <p class="text-gray-600 text-sm leading-relaxed text-center">
                     Conectamos las puntas del negocio. Terneros, novillitos y vaquillonas de calidad para reposición.
                 </p>
             </div>
 
-            <div class="bg-white p-8 rounded shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+            <div class="bg-white p-8 rounded shadow-xl border-b-4 border-accent hover:-translate-y-2 transition-transform duration-300 group">
                 <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Cría y Vientres</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">
+                <p class="text-gray-600 text-sm leading-relaxed text-center">
                     Asesoramiento en genética y reposición de madres. Vacas preñadas, paridas y servicio.
                 </p>
             </div>
         </div>
     </div>
 </section>
+
+<section class="py-24 bg-gray-50 border-t border-gray-200 relative overflow-hidden">
+    <div class="container mx-auto px-6">
+        
+        {% if lote %}
+            <div class="flex flex-col md:flex-row items-center justify-between gap-10">
+                
+                <div class="md:w-1/2 text-left">
+                    <span class="text-accent font-bold tracking-widest uppercase text-xs mb-2 block">Oportunidades Activas</span>
+                    <h2 class="text-3xl md:text-4xl font-display font-bold text-brand mb-6 leading-tight">
+                        Mercado Digital <br> de Hacienda
+                    </h2>
+                    <p class="text-gray-600 text-lg mb-6 leading-relaxed">
+                        Explore nuestra <strong>vidriera online</strong>. Visualice fotos, videos y detalles de los lotes disponibles para venta particular en tiempo real.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="{{ url_for('mercado') }}" class="internal-link px-8 py-3 bg-brand text-white font-bold rounded shadow hover:bg-brand-light transition-colors uppercase text-sm tracking-wide text-center">
+                            Ver Todos los Lotes
+                        </a>
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('registro') }}" class="internal-link px-8 py-3 border border-gray-300 text-gray-600 font-bold rounded hover:border-brand hover:text-brand transition-colors uppercase text-sm tracking-wide text-center bg-white">
+                            Quiero Publicar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-full max-w-md bg-white rounded-2xl border border-gray-200 p-6 shadow-xl rotate-1 hover:rotate-0 transition-transform duration-500 cursor-pointer group" onclick="window.location.href='{{ url_for('mercado') }}'">
+                        
+                        <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+                            <div class="h-56 overflow-hidden relative">
+                                <img src="{{ url_for('static', filename=lote.imagen_principal) }}" 
+                                     alt="{{ lote.titulo }}" 
+                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700">
+                                
+                                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4 pt-10">
+                                    <span class="text-white font-bold text-xl">{{ lote.cantidad }} Cabezas</span>
+                                    <p class="text-gray-300 text-xs uppercase tracking-wide">{{ lote.categoria }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="p-5">
+                                <h3 class="text-lg font-bold text-brand leading-tight mb-2 line-clamp-1">{{ lote.titulo }}</h3>
+                                <div class="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-3 mt-2">
+                                    <span class="font-semibold text-accent uppercase tracking-wider">{{ lote.raza }}</span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        {{ lote.ubicacion_hacienda }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="absolute -top-4 -right-4 bg-accent text-brand font-bold px-4 py-2 rounded-lg shadow-lg text-sm uppercase transform rotate-3 group-hover:rotate-6 transition-transform">
+                            ¡Nuevo Ingreso!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="max-w-3xl mx-auto text-center">
+                <div class="bg-white rounded-2xl p-10 shadow-lg border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand via-accent to-brand"></div>
+                    
+                    <div class="w-20 h-20 bg-brand-light/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+
+                    <h2 class="text-3xl font-display font-bold text-brand mb-4">
+                        El Mercado Digital está Abierto
+                    </h2>
+                    <p class="text-gray-500 text-lg mb-8 max-w-lg mx-auto">
+                        Actualmente no hay lotes destacados en vidriera, pero nuestra red de compradores está activa. 
+                        <br><strong>¡Sea el primero en publicar su hacienda!</strong>
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('publicar') }}" class="internal-link px-8 py-3 bg-accent text-brand font-bold rounded shadow-md hover:bg-white hover:shadow-lg transition-all uppercase tracking-wide">
+                                Publicar Lote Ahora
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('registro') }}" class="internal-link px-8 py-3 bg-brand text-white font-bold rounded shadow-md hover:bg-brand-light transition-all uppercase tracking-wide">
+                                Registrarse para Vender
+                            </a>
+                            <a href="{{ url_for('login') }}" class="internal-link px-8 py-3 border border-gray-300 text-gray-600 font-bold rounded hover:text-brand hover:border-brand transition-all uppercase tracking-wide">
+                                Ingresar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</section>
+
+
+
 
 <section class="relative py-16 bg-brand-dark text-center">
     <div class="absolute inset-0 z-0 opacity-30">
