@@ -1,3 +1,4 @@
 requests
 weasyprint
 Jinja2
+beautifulsoup4
