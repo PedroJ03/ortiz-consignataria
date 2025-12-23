@@ -7,6 +7,7 @@ import uuid
 from werkzeug.utils import secure_filename
 import re
 from email_validator import validate_email, EmailNotValidError
+from utils.video_optimizer import optimizar_video
 
 # --- SEGURIDAD Y AUTH ---
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -33,16 +34,25 @@ CORS(app)
 
 # --- CONFIGURACIÓN DE UPLOADS ---
 UPLOAD_FOLDER = os.path.join(static_dir, 'uploads', 'lotes')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
+# SEPARAR EXTENSIONES
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'mov', 'avi', 'webm'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # Límite 16MB por archivo
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024 # Límite 100MB por archivo
 
 # Crear carpeta si no existe
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def allowed_file(filename, type='image'):
+    if '.' not in filename: return False
+    ext = filename.rsplit('.', 1)[1].lower()
+    if type == 'image':
+        return ext in ALLOWED_IMAGE_EXTENSIONS
+    elif type == 'video':
+        return ext in ALLOWED_VIDEO_EXTENSIONS
+    return False
 
 # --- CONFIGURACIÓN DE SEGURIDAD ---
 # En producción, esto debe venir del .env
@@ -298,57 +308,102 @@ def api_subcategorias():
 # --- RUTAS DE MARKETPLACE ---
 
 @app.route('/publicar', methods=['GET', 'POST'])
-@login_required # ¡Solo usuarios logueados!
+@login_required
 def publicar():
     if request.method == 'POST':
-        # 1. Obtener datos de texto
-        titulo = request.form.get('titulo')
-        categoria = request.form.get('categoria')
-        raza = request.form.get('raza')
-        cantidad = request.form.get('cantidad')
-        peso = request.form.get('peso')
-        precio = request.form.get('precio') # Puede ser vacío
-        ubicacion = request.form.get('ubicacion')
-        descripcion = request.form.get('descripcion')
-
-        # 2. Manejo de la Imagen
-        file = request.files.get('imagen')
-        filename_final = None
-
-        if file and allowed_file(file.filename):
-            # Generar nombre seguro y único (ej: a1b2-c3d4.jpg)
-            ext = file.filename.rsplit('.', 1)[1].lower()
-            unique_name = f"{uuid.uuid4().hex}.{ext}"
-            
-            # Guardar archivo físico
-            path_completo = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
-            file.save(path_completo)
-            
-            # Guardar ruta relativa para la DB (static/uploads/lotes/foto.jpg)
-            filename_final = f"uploads/lotes/{unique_name}"
+        # 1. Obtener lista de archivos (input multiple)
+        files = request.files.getlist('archivos')
         
-        # 3. Guardar en Base de Datos
+        # Validar que al menos uno no esté vacío
+        if not files or files[0].filename == '':
+             flash('Debe seleccionar al menos una foto o video.', 'error')
+             return render_template('marketplace/publicar.html')
+
+        # Variables para definir la portada (la primera que encontremos)
+        portada_filename = None     # Para la tabla publicaciones (columna imagen_filename)
+        video_portada = None        # Para la tabla publicaciones (columna video_filename)
+        
+        media_procesada = []        # Lista para guardar en la tabla media_lotes luego
+
+        # 2. Procesar todos los archivos en bucle
+        for file in files:
+            if file and '.' in file.filename:
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                
+                # --- ES IMAGEN ---
+                if ext in ALLOWED_IMAGE_EXTENSIONS: # {'png', 'jpg', 'jpeg', 'webp'}
+                    unique_name = f"{uuid.uuid4().hex}.{ext}"
+                    path_completo = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+                    file.save(path_completo)
+                    
+                    final_name = f"uploads/lotes/{unique_name}"
+                    media_procesada.append({'name': final_name, 'type': 'imagen'})
+                    
+                    # Si es la primera imagen, será la portada
+                    if not portada_filename: 
+                        portada_filename = final_name 
+                
+                # --- ES VIDEO ---
+                elif ext in ALLOWED_VIDEO_EXTENSIONS: # {'mp4', 'mov', 'avi', 'webm'}
+                    # Nombres
+                    raw_name = f"raw_{uuid.uuid4().hex}.{ext}"
+                    final_name = f"vid_{uuid.uuid4().hex}.mp4"
+                    
+                    path_raw = os.path.join(app.config['UPLOAD_FOLDER'], raw_name)
+                    path_final = os.path.join(app.config['UPLOAD_FOLDER'], final_name)
+                    
+                    # Guardar y Optimizar
+                    file.save(path_raw)
+                    try:
+                        # Asumo que importaste la funcion optimizar_video arriba
+                        exito = optimizar_video(path_raw, path_final)
+                        if exito:
+                            final_name_video = f"uploads/lotes/{final_name}"
+                            os.remove(path_raw)
+                        else:
+                            os.rename(path_raw, path_final)
+                            final_name_video = f"uploads/lotes/{final_name}"
+                        
+                        media_procesada.append({'name': final_name_video, 'type': 'video'})
+                        
+                        # Si es el primer video, lo guardamos como referencia
+                        if not video_portada: 
+                            video_portada = final_name_video
+
+                    except Exception as e:
+                        print(f"Error procesando video {file.filename}: {e}")
+
+        # 3. Guardar Publicación Principal (Tabla 'publicaciones')
         conn = get_db_market()
         
-        nuevo_id = db_manager.crear_publicacion(
-            conn, 
-            user_id=current_user.id,
-            titulo=titulo,
-            categoria=categoria,
-            raza=raza,
-            cantidad=cantidad,
-            peso=peso,
-            precio=precio if precio else 0,
-            descripcion=descripcion,
-            ubicacion=ubicacion,
-            imagen=filename_final
+        # Lógica de portada: Priorizamos imagen. Si no hay, y hay video, dejamos vacío o nulo según tu lógica de index.
+        # Aquí guardamos las referencias principales para que el 'index.html' no se rompa.
+        
+        nid = db_manager.crear_publicacion(
+            conn=conn, 
+            user_id=current_user.id, 
+            titulo=request.form.get('titulo'), 
+            categoria=request.form.get('categoria'),
+            raza=request.form.get('raza'), 
+            cantidad=request.form.get('cantidad'),
+            peso=request.form.get('peso'), 
+            precio=request.form.get('precio') or 0,
+            descripcion=request.form.get('descripcion'), 
+            ubicacion=request.form.get('ubicacion'),
+            imagen_filename=portada_filename, # La foto de portada
+            video_filename=video_portada      # El video principal
         )
 
-        if nuevo_id:
-            flash('Lote publicado', 'success')
-            return redirect(url_for('dashboard')) # O ir a "Mis Publicaciones"
+        # 4. Guardar la Galería Completa (Tabla 'media_lotes')
+        if nid:
+            for item in media_procesada:
+                # Esta función debe existir en db_manager (paso anterior)
+                db_manager.guardar_archivo_media(conn, nid, item['name'], item['type'])
+            
+            flash('Lote publicado con éxito.', 'success')
+            return redirect(url_for('mercado')) 
         else:
-            flash('Error al guardar la publicación.', 'error')
+            flash('Error al guardar en base de datos.', 'error')
 
     return render_template('marketplace/publicar.html')
 
@@ -428,6 +483,23 @@ def admin_toggle_user(id):
         return jsonify({'success': True, 'es_admin': nuevo_estado})
         
     return jsonify({'success': False, 'msg': 'Error en DB'}), 500
+
+@app.route('/mercado/<int:lote_id>')
+def detalle_lote(lote_id):
+    conn = get_db_market()
+    
+    # 1. Obtener datos del lote
+    lote = db_manager.obtener_publicacion_por_id(conn, lote_id)
+    
+    if not lote:
+        flash('La publicación no existe.', 'error')
+        return redirect(url_for('mercado'))
+    
+    # 2. NUEVO: Obtener la galería de archivos
+    # Si la función retorna lista vacía [], la plantilla lo manejará
+    galeria = db_manager.obtener_media_por_publicacion(conn, lote_id)
+    
+    return render_template('marketplace/detalle.html', lote=lote, galeria=galeria)
 
 
 # --- MANEJO DE ERRORES ---

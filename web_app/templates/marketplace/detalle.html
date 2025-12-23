@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lote.titulo }} - Ortiz y Cía.{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    
+    <a href="{{ url_for('mercado') }}" class="inline-flex items-center text-gray-500 hover:text-brand mb-6 transition-colors font-bold text-sm uppercase tracking-wide">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Volver al Mercado
+    </a>
+
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+        <div class="flex flex-col lg:flex-row min-h-[600px]">
+            
+            <div class="lg:w-2/3 bg-black flex flex-col">
+                
+                <div id="main-media-container" class="flex-grow relative bg-black flex items-center justify-center overflow-hidden h-[400px] lg:h-auto">
+                    <p class="text-gray-500 text-sm">Cargando...</p>
+                </div>
+
+                {% if galeria %}
+                <div class="h-24 bg-gray-900 border-t border-gray-800 flex overflow-x-auto p-2 gap-2 scrollbar-hide">
+                    {% for item in galeria %}
+                    <div class="flex-shrink-0 w-32 h-full cursor-pointer border-2 border-transparent hover:border-brand rounded overflow-hidden relative opacity-70 hover:opacity-100 transition-all"
+                         onclick="setMainMedia('{{ url_for('static', filename=item.filename) }}', '{{ item.tipo }}')">
+                        
+                        {% if item.tipo == 'video' %}
+                            <div class="w-full h-full bg-gray-800 flex items-center justify-center text-white">
+                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        {% else %}
+                            <img src="{{ url_for('static', filename=item.filename) }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="lg:w-1/3 p-8 lg:p-10 flex flex-col justify-between bg-white relative">
+                
+                <div>
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="bg-accent text-brand font-bold px-3 py-1 rounded text-xs uppercase tracking-wider">
+                            {{ lote.categoria }}
+                        </span>
+                        <span class="text-gray-400 text-sm">{{ lote.fecha_publicacion }}</span>
+                    </div>
+
+                    <h1 class="text-3xl font-display font-bold text-gray-900 mb-2 leading-tight">
+                        {{ lote.titulo }}
+                    </h1>
+                    <p class="text-lg text-brand font-bold mb-6">{{ lote.raza }}</p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p class="text-xs text-gray-500 uppercase font-bold">Cabezas</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ lote.cantidad }}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p class="text-xs text-gray-500 uppercase font-bold">Peso Prom.</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ lote.peso_promedio }} Kg</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 col-span-2">
+                            <p class="text-xs text-gray-500 uppercase font-bold">Ubicación</p>
+                            <p class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                {{ lote.ubicacion_hacienda }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-sm text-gray-600 mb-8">
+                        <h3 class="text-gray-900 font-bold uppercase text-xs tracking-wide mb-2">Descripción del Lote</h3>
+                        <p class="whitespace-pre-line">{{ lote.descripcion }}</p>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-100">
+                    {% if lote.precio %}
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-500 uppercase">Valor Pretendido</p>
+                            <p class="text-3xl font-display font-bold text-brand">$ {{ lote.precio }}</p>
+                        </div>
+                    {% endif %}
+
+                    <a href="https://wa.me/5492262508401?text=Hola,%20vi%20el%20lote%20'{{ lote.titulo }}'%20en%20la%20web%20y%20quiero%20consultar." 
+                       target="_blank"
+                       class="block w-full py-4 bg-green-600 hover:bg-green-700 text-white text-center font-bold rounded-xl transition-all shadow-lg hover:shadow-green-200 uppercase tracking-wider flex items-center justify-center gap-2">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                        Consultar por WhatsApp
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para cambiar el contenido principal
+    function setMainMedia(url, type) {
+        const container = document.getElementById('main-media-container');
+        container.innerHTML = ''; // Limpiar actual
+
+        if (type === 'video') {
+            // Crear elemento Video
+            const vid = document.createElement('video');
+            vid.src = url;
+            vid.controls = true;
+            vid.autoplay = true;
+            vid.className = "w-full h-full object-contain"; 
+            container.appendChild(vid);
+        } else {
+            // Crear elemento Imagen
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = "w-full h-full object-contain cursor-zoom-in"; 
+            img.onclick = () => window.open(url, '_blank');
+            container.appendChild(img);
+        }
+    }
+
+    // Inicializar con el primer elemento
+    document.addEventListener('DOMContentLoaded', () => {
+        {% if galeria and galeria|length > 0 %}
+            // Si hay galería, mostrar el primero
+            setMainMedia("{{ url_for('static', filename=galeria[0].filename) }}", "{{ galeria[0].tipo }}");
+        {% elif lote.imagen_filename %}
+            // Compatibilidad: Si es lote viejo sin galería pero con imagen
+            setMainMedia("{{ url_for('static', filename=lote.imagen_filename) }}", "imagen");
+        {% elif lote.video_filename %}
+             // Compatibilidad: Si es lote viejo solo con video
+             setMainMedia("{{ url_for('static', filename=lote.video_filename) }}", "video");
+        {% endif %}
+    });
+</script>
+{% endblock %}

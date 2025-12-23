@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mercado - Ortiz y Cía. Consignatarios{% endblock %}
+{% block title %}Mercado - Ortiz y Cia. Consignatarios{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -28,22 +28,41 @@
             {% for lote in lotes %}
             <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300 group">
                 
-                <div class="h-56 overflow-hidden relative bg-gray-200">
-                    {% if lote.imagen_principal %}
-                        <img src="{{ url_for('static', filename=lote.imagen_principal) }}" 
-                             alt="{{ lote.titulo }}" 
-                             class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <a href="{{ url_for('detalle_lote', lote_id=lote.id) }}" class="block h-56 overflow-hidden relative bg-gray-200 group cursor-pointer">
+                    
+                    {% if lote.video_filename %}
+                        <video class="w-full h-full object-cover" 
+                            muted 
+                            loop 
+                            playsinline 
+                            onmouseover="this.play()" 
+                            onmouseout="this.pause()" 
+                            {% if lote.imagen_filename %}poster="{{ url_for('static', filename=lote.imagen_filename) }}"{% endif %}>
+                            <source src="{{ url_for('static', filename=lote.video_filename) }}" type="video/mp4">
+                        </video>
+                        
+                        <div class="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm z-10 pointer-events-none">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+
+                    {% elif lote.imagen_filename %}
+                        <img src="{{ url_for('static', filename=lote.imagen_filename) }}" 
+                            alt="{{ lote.titulo }}" 
+                            class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                            
                     {% else %}
-                        <div class="flex items-center justify-center h-full text-gray-400">
-                            <span class="text-xs uppercase tracking-widest">Sin Imagen</span>
+                        <div class="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-100">
+                            <svg class="w-10 h-10 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs uppercase tracking-widest font-bold opacity-50">Ver Detalle</span>
                         </div>
                     {% endif %}
-                    
-                    <div class="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-3 py-1 rounded uppercase tracking-wider shadow">
+
+                    <div class="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-3 py-1 rounded uppercase tracking-wider shadow z-20 pointer-events-none">
                         {{ lote.categoria }}
                     </div>
-                </div>
+                </a>
 
+                
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-3">
                         <div>
@@ -67,10 +86,10 @@
                         </div>
                     </div>
 
-                    {% if lote.precio_pretendido %}
+                    {% if lote.precio %}
                     <div class="mb-4 bg-gray-50 p-2 rounded text-center border border-gray-100">
                         <span class="text-xs text-gray-500 uppercase">Valor Pretendido</span>
-                        <div class="font-bold text-brand font-display">$ {{ "{:,.0f}".format(lote.precio_pretendido) }}</div>
+                        <div class="font-bold text-brand font-display">$ {{ lote.precio }}</div>
                     </div>
                     {% endif %}
 
@@ -93,5 +112,6 @@
             <a href="{{ url_for('publicar') }}" class="inline-block mt-6 text-brand font-bold hover:text-accent underline">Publicar ahora</a>
         </div>
     {% endif %}
+
 </div>
 {% endblock %}
