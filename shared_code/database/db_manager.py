@@ -125,7 +125,8 @@ def crear_tablas_market(conn):
             precio_pretendido REAL,
             descripcion TEXT,
             ubicacion_hacienda TEXT,
-            imagen_principal TEXT,
+            imagen_filename TEXT,
+            video_filename TEXT,
             fecha_publicacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             activo BOOLEAN DEFAULT 1,
             FOREIGN KEY (user_id) REFERENCES users (id)
@@ -360,26 +361,23 @@ def crear_usuario(conn, email, password_hash, nombre, telefono, ubicacion):
 
 # --- GESTIÓN DE PUBLICACIONES (MARKETPLACE) ---
 
-def crear_publicacion(conn, user_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, imagen):
-    """Crea una nueva publicación de venta."""
+
+def crear_publicacion(conn, user_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, imagen_filename, video_filename=None):
+    """Crea una nueva publicación en el marketplace con soporte para video."""
     sql = """
-    INSERT INTO publicaciones (
-        user_id, titulo, categoria, raza, cantidad, peso_promedio, 
-        precio_pretendido, descripcion, ubicacion_hacienda, imagen_principal
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO publicaciones 
+    (user_id, titulo, categoria, raza, cantidad, peso_promedio, precio, descripcion, ubicacion_hacienda, imagen_filename, video_filename)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
         cursor = conn.cursor()
-        cursor.execute(sql, (
-            user_id, titulo, categoria, raza, cantidad, peso, 
-            precio, descripcion, ubicacion, imagen
-        ))
+        cursor.execute(sql, (user_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, imagen_filename, video_filename))
         conn.commit()
         return cursor.lastrowid
     except sqlite3.Error as e:
         logger.error(f"Error creando publicación: {e}")
         return None
-    
+
 # --- LECTURA DE MARKETPLACE ---
 
 def obtener_publicaciones(conn, activo=True):
@@ -425,6 +423,23 @@ def obtener_ultima_publicacion(conn):
     except sqlite3.Error as e:
         print(f"Error obteniendo última publicación: {e}")
         return None
+
+def obtener_publicacion_por_id(conn, publicacion_id):
+    """Obtiene los detalles de una publicación específica."""
+    sql = """
+    SELECT p.*, u.nombre_completo as vendedor 
+    FROM publicaciones p
+    JOIN users u ON p.user_id = u.id
+    WHERE p.id = ?
+    """
+    cursor = conn.cursor()
+    cursor.execute(sql, (publicacion_id,))
+    row = cursor.fetchone()
+    if row:
+        # Convertir a diccionario (ajusta según tus columnas reales)
+        cols = [c[0] for c in cursor.description]
+        return dict(zip(cols, row))
+    return None
     
 # --- FUNCIONES DE ADMINISTRADOR ---
 
@@ -511,3 +526,18 @@ def toggle_user_admin(conn, user_id):
     except sqlite3.Error as e:
         logger.error(f"Error toggle admin user {user_id}: {e}")
         return False
+    
+def guardar_archivo_media(conn, publicacion_id, filename, tipo):
+    """Guarda una referencia a una imagen o video en la tabla media_lotes."""
+    sql = "INSERT INTO media_lotes (publicacion_id, filename, tipo) VALUES (?, ?, ?)"
+    cursor = conn.cursor()
+    cursor.execute(sql, (publicacion_id, filename, tipo))
+    conn.commit()
+
+def obtener_media_por_publicacion(conn, publicacion_id):
+    """Devuelve la lista de fotos y videos de un lote."""
+    sql = "SELECT filename, tipo FROM media_lotes WHERE publicacion_id = ?"
+    cursor = conn.cursor()
+    cursor.execute(sql, (publicacion_id,))
+    # Devolvemos lista de diccionarios para fácil uso en Jinja
+    return [{'filename': row[0], 'tipo': row[1]} for row in cursor.fetchall()]
