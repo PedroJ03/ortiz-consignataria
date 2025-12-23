@@ -7,7 +7,7 @@ import uuid
 from werkzeug.utils import secure_filename
 import re
 from email_validator import validate_email, EmailNotValidError
-from utils.video_optimizer import optimizar_video
+from web_app.utils.video_optimizer import optimizar_video
 
 # --- SEGURIDAD Y AUTH ---
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
