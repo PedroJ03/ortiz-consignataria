@@ -48,7 +48,8 @@ def ejecutar_pipeline_diario(enviar_email=True):
         return
 
     # Asegurar tablas
-    db_manager.crear_tablas(conn)
+    db_manager.crear_tablas_market(conn)
+    db_manager.crear_tablas_precios(conn)
 
     reportes_generados = []
     resumen_faena = 0
