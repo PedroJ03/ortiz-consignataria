@@ -15,8 +15,10 @@
 
         <div class="p-6">
             <div class="flex gap-4 mb-6 border-b border-gray-200 pb-1">
-                <button onclick="switchTab('lotes')" id="btn-lotes" class="tab-btn text-brand font-bold border-b-2 border-brand pb-2 transition-colors">Publicaciones</button>
-                <button onclick="switchTab('usuarios')" id="btn-usuarios" class="tab-btn text-gray-500 font-medium pb-2 hover:text-brand transition-colors">Usuarios</button>
+                <button onclick="switchTab('lotes')" id="btn-lotes"
+                    class="tab-btn text-brand font-bold border-b-2 border-brand pb-2 transition-colors">Publicaciones</button>
+                <button onclick="switchTab('usuarios')" id="btn-usuarios"
+                    class="tab-btn text-gray-500 font-medium pb-2 hover:text-brand transition-colors">Usuarios</button>
             </div>
 
             <div id="tab-lotes">
@@ -38,25 +40,33 @@
                                 <td class="px-4 py-3 font-bold text-brand">{{ p.vendedor }}</td>
                                 <td class="px-4 py-3">{{ p.titulo }}</td>
                                 <td class="px-4 py-3">
-                                    <span id="badge-lote-{{ p.id }}" class="text-xs font-bold px-2 py-1 rounded 
+                                    <span id="badge-lote-{{ p.id }}"
+                                        class="text-xs font-bold px-2 py-1 rounded 
                                         {{ 'bg-green-100 text-green-800' if p.activo else 'bg-red-100 text-red-800' }}">
                                         {{ 'ACTIVO' if p.activo else 'PAUSADO' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-right flex justify-end gap-3 items-center">
-                                    <button onclick="toggleLote({{ p.id }})" id="btn-toggle-lote-{{ p.id }}" class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase cursor-pointer">
+                                    <button onclick="toggleLote({{ p.id }})" id="btn-toggle-lote-{{ p.id }}"
+                                        class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase cursor-pointer">
                                         {{ 'Pausar' if p.activo else 'Activar' }}
                                     </button>
-                                    
+
                                     <span class="text-gray-300">|</span>
-                                    
-                                    <form action="{{ url_for('admin_borrar_lote', id=p.id) }}" method="POST" onsubmit="return confirm('¿Eliminar definitivamente?');">
-                                        <button type="submit" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase">Borrar</button>
+
+                                    <form action="{{ url_for('admin_borrar_lote', id=p.id) }}" method="POST"
+                                        onsubmit="return confirm('¿Eliminar definitivamente?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                        <button type="submit"
+                                            class="text-red-500 hover:text-red-700 font-bold text-xs uppercase">Borrar</button>
                                     </form>
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="5" class="p-6 text-center text-gray-400 italic">No hay publicaciones registradas.</td></tr>
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-gray-400 italic">No hay publicaciones
+                                    registradas.</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -82,18 +92,20 @@
                                 <td class="px-4 py-3 font-bold text-brand">{{ u.nombre_completo }}</td>
                                 <td class="px-4 py-3">{{ u.email }}</td>
                                 <td class="px-4 py-3">
-                                    <span id="badge-user-{{ u.id }}" class="px-2 py-0.5 rounded text-xs font-bold 
+                                    <span id="badge-user-{{ u.id }}"
+                                        class="px-2 py-0.5 rounded text-xs font-bold 
                                         {{ 'text-green-600 border border-green-200 bg-green-50' if u.es_admin else 'text-gray-400' }}">
                                         {{ 'ADMIN' if u.es_admin else 'Usuario' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     {% if u.id != current_user.id %}
-                                        <button onclick="toggleUserAdmin({{ u.id }})" id="btn-toggle-user-{{ u.id }}" class="text-xs font-bold underline cursor-pointer {{ 'text-red-500' if u.es_admin else 'text-green-600' }}">
-                                            {{ 'Quitar Admin' if u.es_admin else 'Hacer Admin' }}
-                                        </button>
+                                    <button onclick="toggleUserAdmin({{ u.id }})" id="btn-toggle-user-{{ u.id }}"
+                                        class="text-xs font-bold underline cursor-pointer {{ 'text-red-500' if u.es_admin else 'text-green-600' }}">
+                                        {{ 'Quitar Admin' if u.es_admin else 'Hacer Admin' }}
+                                    </button>
                                     {% else %}
-                                        <span class="text-gray-400 text-xs italic">Tú</span>
+                                    <span class="text-gray-400 text-xs italic">Tú</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -131,11 +143,11 @@
     }
 
     // 2. ACCIONES AJAX (Sin Recarga)
-    
+
     async function toggleLote(id) {
         const btn = document.getElementById(`btn-toggle-lote-${id}`);
         const badge = document.getElementById(`badge-lote-${id}`);
-        
+
         // Feedback visual inmediato (Loading)
         const originalText = btn.innerText;
         btn.innerText = "...";
@@ -172,7 +184,7 @@
     async function toggleUserAdmin(id) {
         const btn = document.getElementById(`btn-toggle-user-${id}`);
         const badge = document.getElementById(`badge-user-${id}`);
-        
+
         btn.innerText = "...";
         btn.disabled = true;
 

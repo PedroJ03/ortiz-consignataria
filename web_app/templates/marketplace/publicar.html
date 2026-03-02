@@ -10,6 +10,7 @@
         </div>
 
         <form action="{{ url_for('publicar') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6" id="uploadForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Título del Lote</label>
