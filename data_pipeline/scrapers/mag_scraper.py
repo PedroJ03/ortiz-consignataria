@@ -84,7 +84,7 @@ def inicializar_sesion_mag(session):
         # Si el servidor no nos dio nada (o envió campos vacíos), usamos el comodín.
         if not id_sesion:
             logger.warning("El servidor no entregó ID dinámico. Activando ID Maestro de respaldo.")
-            id_sesion = "E0E7EC0C-8211-496C-A67F-DAFBF0E6983E" # Tu ID conocido
+            id_sesion = os.getenv('MAG_MASTER_TOKEN') # ID extraído del .env
 
         # Construimos los inputs para el formulario
         hidden_inputs = {
@@ -101,8 +101,9 @@ def inicializar_sesion_mag(session):
         # Si falla la conexión del handshake, incluso ahí podemos intentar usar el ID maestro
         # directamente contra el POST, aunque es arriesgado, es un último recurso válido.
         logger.error(f"Fallo en conexión handshake: {e}. Intentando forzar ID Maestro.")
+        token_maestro = os.getenv('MAG_MASTER_TOKEN')
         return {
-            'ID': "E0E7EC0C-8211-496C-A67F-DAFBF0E6983E",
+            'ID': token_maestro if token_maestro else "",
             'CP': MAG_CP,
             'USUARIO': MAG_USER
         }
