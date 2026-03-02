@@ -17,11 +17,18 @@ logger = setup_logger('DB_Manager')
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- RUTAS DE BASES DE DATOS ---
-# DB 1: Precios Históricos (Scrapers + Dashboard)
-DB_PRECIOS_PATH = os.path.join(PROJECT_ROOT, 'precios_historicos.db')
+if os.environ.get('RAILWAY_ENVIRONMENT_ID') or os.environ.get('USE_PERSISTENT_VOLUME'):
+    # Entorno de Producción en Railway (Volumen persistente protegido)
+    DATABASES_DIR = '/app/data'
+else:
+    # Entorno Local de Desarrollo
+    DATABASES_DIR = PROJECT_ROOT
 
-# DB 2: Marketplace (Usuarios + Publicaciones) - ¡NUEVA!
-DB_MARKET_PATH = os.path.join(PROJECT_ROOT, 'marketplace.db')
+# DB 1: Precios Históricos (Scrapers + Dashboard)
+DB_PRECIOS_PATH = os.path.join(DATABASES_DIR, 'precios_historicos.db')
+
+# DB 2: Marketplace (Usuarios + Publicaciones)
+DB_MARKET_PATH = os.path.join(DATABASES_DIR, 'marketplace.db')
 
 def get_db_connection(db_path=DB_PRECIOS_PATH):
     """

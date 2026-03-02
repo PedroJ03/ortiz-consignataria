@@ -1,7 +1,6 @@
 import sys
 import os
 from flask import Flask, jsonify, request, render_template, abort, g, send_from_directory, redirect, url_for, flash
-from flask_cors import CORS
 import sqlite3
 import uuid 
 from werkzeug.utils import secure_filename
@@ -12,6 +11,7 @@ from web_app.utils.video_optimizer import optimizar_video
 # --- SEGURIDAD Y AUTH ---
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf.csrf import CSRFProtect
 
 # --- CONFIGURACIÓN DE RUTAS ---
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,10 +30,17 @@ except ModuleNotFoundError as e:
 logger = setup_logger('Web_App')
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-CORS(app)
+csrf = CSRFProtect(app)
 
-# --- CONFIGURACIÓN DE UPLOADS ---
-UPLOAD_FOLDER = os.path.join(static_dir, 'uploads', 'lotes')
+# --- CONFIGURACIÓN DE UPLOADS Y VOLUMEN PERSISTENTE ---
+# Si estamos en Railway (o si forzamos la variable), usamos el disco persistente '/app/data'
+if os.environ.get('RAILWAY_ENVIRONMENT_ID') or os.environ.get('USE_PERSISTENT_VOLUME'):
+    BASE_UPLOAD_DIR = '/app/data/uploads'
+else:
+    # Entorno local de desarrollo
+    BASE_UPLOAD_DIR = os.path.join(static_dir, 'uploads')
+
+UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_DIR, 'lotes')
 
 # SEPARAR EXTENSIONES
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
@@ -55,8 +62,15 @@ def allowed_file(filename, type='image'):
     return False
 
 # --- CONFIGURACIÓN DE SEGURIDAD ---
-# En producción, esto debe venir del .env
-app.secret_key = os.environ.get('SECRET_KEY', 'clave_desarrollo_ortiz_2025')
+# 1. Obtenemos la variable de entorno
+secret_key_env = os.environ.get('SECRET_KEY')
+
+# 2. Si estamos en Railway (Producción) y no existe la variable, el sistema CRASHEA por seguridad
+if os.environ.get('RAILWAY_ENVIRONMENT_ID') and not secret_key_env:
+    raise ValueError("CRÍTICO: No se ha configurado la variable SECRET_KEY en el entorno de Railway.")
+
+# 3. Asignación final (Usa la variable, o un fallback solo si estamos en desarrollo local)
+app.secret_key = secret_key_env or 'clave_desarrollo_ortiz_2025'
 
 # Inicializar Flask-Login
 login_manager = LoginManager()
@@ -134,6 +148,16 @@ def dashboard():
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static', 'images'), 'logo_blanco_circular.png', mimetype='image/png')
+
+# --- RUTA PARA SERVIR MEDIA DESDE EL VOLUMEN PERSISTENTE ---
+@app.route('/uploads/<path:filename>')
+def serve_uploads(filename):
+    """
+    Ruta dinámica para servir archivos multimedia.
+    Si el sistema está en Railway, Flask servirá los archivos desde /app/data/uploads.
+    Si está local, los servirá desde web_app/static/uploads.
+    """
+    return send_from_directory(BASE_UPLOAD_DIR, filename)
 
 # --- RUTAS DE AUTENTICACIÓN (Login/Registro) ---
 
@@ -511,4 +535,6 @@ def server_error(e): return render_template('500.html'), 500
 
 if __name__ == '__main__':
     logger.info("Servidor iniciado.")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # El modo debug ahora será activado SÓLO si la variable de entorno FLASK_DEBUG es "1"
+    modo_debug = os.environ.get('FLASK_DEBUG') == '1'
+    app.run(debug=modo_debug, host='0.0.0.0', port=5000)

@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos Virtuales Locales
+entorno_consignataria/
+venv/
+env/
+ENV/
+
+# Bases de datos locales (las de producción irán en un volumen aparte)
+*.db
+*.sqlite3
+
+# Logs locales
+logs/
+*.log
+
+# Entornos IDE
+.vscode/
+.idea/
+
+# Carpetas del SO
+.DS_Store
+
+# Archivos multimedia subidos localmente (videos/imágenes de prueba)
+web_app/static/uploads/
