@@ -32,6 +32,17 @@ logger = setup_logger('Web_App')
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 csrf = CSRFProtect(app)
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Limitador de peticiones (Rate Limiting)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
 # --- CONFIGURACIÓN DE UPLOADS Y VOLUMEN PERSISTENTE ---
 # Si estamos en Railway (o si forzamos la variable), usamos el disco persistente '/app/data'
 if os.environ.get('RAILWAY_ENVIRONMENT_ID') or os.environ.get('USE_PERSISTENT_VOLUME'):
@@ -162,6 +173,7 @@ def serve_uploads(filename):
 # --- RUTAS DE AUTENTICACIÓN (Login/Registro) ---
 
 @app.route('/registro', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def registro():
     if current_user.is_authenticated:
         return redirect(url_for('inicio'))
@@ -223,6 +235,7 @@ def registro():
     return render_template('auth/registro.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('inicio'))
@@ -333,6 +346,7 @@ def api_subcategorias():
 
 @app.route('/publicar', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("10 per hour")
 def publicar():
     if request.method == 'POST':
         # 1. Obtener lista de archivos (input multiple)
