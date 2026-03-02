@@ -6,3 +6,5 @@ Flask-Login
 Flask-WTF
 email-validator
 moviepy
+Flask-Limiter
+python-magic

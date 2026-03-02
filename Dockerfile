@@ -13,13 +13,14 @@ ENV PYTHONPATH=/app
 # dependencias pango/cairo: para WeasyPrint (Generación de PDFs)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        ffmpeg \
-        libpango-1.0-0 \
-        libpangoft2-1.0-0 \
-        libcairo2 \
-        libffi-dev \
-        python3-dev \
-        build-essential \
+    ffmpeg \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libcairo2 \
+    libffi-dev \
+    python3-dev \
+    build-essential \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Establecemos el directorio de trabajo dentro del contenedor

@@ -6,6 +6,7 @@ import uuid
 from werkzeug.utils import secure_filename
 import re
 from email_validator import validate_email, EmailNotValidError
+import magic
 from web_app.utils.video_optimizer import optimizar_video
 
 # --- SEGURIDAD Y AUTH ---
@@ -368,8 +369,16 @@ def publicar():
             if file and '.' in file.filename:
                 ext = file.filename.rsplit('.', 1)[1].lower()
                 
-                # --- ES IMAGEN ---
-                if ext in ALLOWED_IMAGE_EXTENSIONS: # {'png', 'jpg', 'jpeg', 'webp'}
+                # --- VERIFICACIÓN DE SEGURIDAD: MAGIC BYTES ---
+                header = file.read(2048)
+                file.seek(0) # IMPORTANTÍSIMO: Volver el puntero al inicio
+                try:
+                    mime_type = magic.from_buffer(header, mime=True)
+                except Exception:
+                    mime_type = "unknown"
+                
+                # --- ES IMAGEN (Verificando extensión Y contenido real) ---
+                if ext in ALLOWED_IMAGE_EXTENSIONS and mime_type.startswith('image/'):
                     unique_name = f"{uuid.uuid4().hex}.{ext}"
                     path_completo = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
                     file.save(path_completo)
@@ -381,8 +390,8 @@ def publicar():
                     if not portada_filename: 
                         portada_filename = final_name 
                 
-                # --- ES VIDEO ---
-                elif ext in ALLOWED_VIDEO_EXTENSIONS: # {'mp4', 'mov', 'avi', 'webm'}
+                # --- ES VIDEO (Verificando extensión Y contenido real) ---
+                elif ext in ALLOWED_VIDEO_EXTENSIONS and mime_type.startswith('video/'):
                     # Nombres
                     raw_name = f"raw_{uuid.uuid4().hex}.{ext}"
                     final_name = f"vid_{uuid.uuid4().hex}.mp4"
