@@ -2,281 +2,553 @@
 
 {% block content %}
 
-<div class="relative h-[550px] flex items-center mt-[-1px]"> <div class="absolute inset-0 z-0">
-        <img src="{{ url_for('static', filename='images/hero_bg.png') }}" 
-             class="w-full h-full object-cover" 
-             alt="Campo Argentino">
-        <div class="absolute inset-0 bg-black/30"></div>
+<!-- Hero Section -->
+<div class="relative min-h-[650px] flex items-center mt-[-1px] overflow-hidden">
+    <!-- Fondo con overlay degradado avanzado -->
+    <div class="absolute inset-0 z-0">
+        <img src="{{ url_for('static', filename='images/hero_bg.png') }}"
+            class="w-full h-full object-cover transform scale-105 animate-slow-zoom" alt="Campo Argentino">
+        <div class="absolute inset-0 bg-gradient-to-r from-brand/90 via-brand/70 to-transparent"></div>
+        <div class="absolute inset-0 bg-black/20"></div>
     </div>
 
     <div class="container mx-auto px-6 relative z-10">
-        <div class="bg-white/95 backdrop-blur-sm p-8 md:p-10 max-w-xl rounded shadow-xl border-l-8 border-brand transform transition-all duration-700 hover:scale-[1.01]">
-            <span class="text-accent font-bold tracking-widest uppercase text-xs mb-2 block">Consignataria de Hacienda</span>
-            <h1 class="text-4xl md:text-5xl font-display font-bold text-brand mb-4 leading-tight">
-                Confianza en sus negocios ganaderos
+        <div class="max-w-2xl reveal-hidden">
+            <div
+                class="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 shadow-sm">
+                <span class="text-accent font-bold tracking-widest uppercase text-xs">Consignataria de Hacienda</span>
+            </div>
+
+            <h1
+                class="text-5xl md:text-6xl lg:text-7xl font-display font-bold text-white mb-6 leading-tight text-shadow-lg">
+                Confianza en sus <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-dark">negocios
+                    ganaderos</span>
             </h1>
-            <p class="text-gray-600 text-lg mb-8 leading-relaxed">
-                Brindamos un servicio integral de compra y venta, uniendo tradición con tecnología precisa.
+
+            <p
+                class="text-gray-200 text-lg md:text-xl mb-10 leading-relaxed font-light max-w-lg border-l-4 border-accent pl-4">
+                Brindamos un servicio integral de compra y venta, uniendo años de tradición con la precisión de la
+                tecnología moderna.
             </p>
+
             <div class="flex flex-wrap gap-4">
-                <a href="{{ url_for('dashboard') }}" class="internal-link px-6 py-3 bg-brand text-white font-bold rounded shadow hover:bg-brand-light hover:shadow-lg transition-all uppercase text-sm tracking-wide">
-                    Ver Precios Online
+                <a href="{{ url_for('dashboard') }}"
+                    class="internal-link relative group overflow-hidden px-8 py-4 bg-accent text-brand font-bold rounded-lg shadow-[0_0_20px_rgba(203,214,48,0.4)] hover:shadow-[0_0_30px_rgba(203,214,48,0.6)] transition-all uppercase text-sm tracking-wide">
+                    <span class="relative z-10 flex items-center gap-2">
+                        Ver Precios Online
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out">
+                    </div>
                 </a>
-                <a href="#contacto" class="anchor-link px-6 py-3 border border-brand text-brand font-bold rounded hover:bg-gray-50 transition-colors uppercase text-sm tracking-wide">
+
+                <a href="#contacto"
+                    class="anchor-link px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-bold rounded-lg hover:bg-white/20 transition-all uppercase text-sm tracking-wide flex items-center gap-2">
                     Contactar
                 </a>
             </div>
         </div>
     </div>
+
+    <!-- Animación sutil de ondas curvas uniformes abajo -->
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none">
+        <svg class="relative block w-full h-[40px] md:h-[60px]" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                opacity=".25" class="fill-white"></path>
+            <path
+                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                opacity=".5" class="fill-white"></path>
+            <path
+                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+                class="fill-white"></path>
+        </svg>
+    </div>
 </div>
 
-<section class="py-16 bg-white relative overflow-hidden">
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img src="{{ url_for('static', filename='images/logo_azul_circular.png') }}" 
-             class="h-[150%] opacity-[0.05] object-contain transform scale-110" 
-             alt="Marca de agua">
+<!-- Nuestra Identidad -->
+<section class="py-20 bg-white relative overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+        <img src="{{ url_for('static', filename='images/logo_azul_circular.png') }}" class="h-[120%] object-contain"
+            alt="Marca de agua">
     </div>
-    
-    <div class="container mx-auto px-6 text-center max-w-4xl relative z-10">
-        <h2 class="text-3xl font-display font-bold text-brand mb-6 uppercase tracking-wide">Nuestra Identidad</h2>
-        <div class="w-20 h-1 bg-accent mx-auto mb-10"></div>
-        <p class="text-xl text-gray-800 leading-relaxed mb-8 font-light">
-            En <strong>Ortiz y Cia. Consignatarios</strong> sabemos el valor del trabajo en el campo. Nos dedicamos a la intermediación de hacienda con un enfoque basado en la transparencia y el trato personalizado.
+
+    <div class="container mx-auto px-6 text-center max-w-4xl relative z-10 reveal-hidden">
+        <h2 class="text-sm font-bold text-accent mb-2 uppercase tracking-widest">Quiénes Somos</h2>
+        <h3 class="text-3xl md:text-4xl font-display font-bold text-brand mb-6 uppercase tracking-wide">Nuestra
+            Identidad</h3>
+        <div class="w-24 h-1.5 bg-gradient-to-r from-accent to-brand mx-auto mb-10 rounded-full"></div>
+        <p class="text-xl md:text-2xl text-gray-600 leading-relaxed font-light">
+            En <strong class="text-brand font-semibold">Ortiz y Cia. Consignatarios</strong> sabemos el valor del
+            trabajo en el campo. Nos dedicamos a la intermediación de hacienda con un enfoque basado en la <span
+                class="bg-accent/20 text-brand px-2 py-0.5 rounded font-medium">transparencia</span> y el <span
+                class="bg-accent/20 text-brand px-2 py-0.5 rounded font-medium">trato personalizado</span>.
         </p>
     </div>
 </section>
 
-<section id="servicios" class="py-20 bg-brand scroll-mt-24 relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 30px 30px;"></div>
+<!-- Servicios Innovadores -->
+<section id="servicios" class="py-32 bg-brand-dark relative overflow-hidden scroll-mt-20">
+    <!-- Fondos dinámicos oscuros -->
+    <div
+        class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none">
+    </div>
+    <div
+        class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-light/20 rounded-full blur-[100px] transform translate-x-1/2 -translate-y-1/2 pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[100px] transform -translate-x-1/2 translate-y-1/3 pointer-events-none">
+    </div>
 
     <div class="container mx-auto px-6 relative z-10">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-display font-bold text-white uppercase">Servicios Comerciales</h2>
-            <p class="text-gray-300 mt-2">Cubrimos todas las etapas del ciclo productivo.</p>
+        <div class="max-w-3xl mx-auto text-center mb-20 reveal-hidden">
+            <span
+                class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent font-bold text-xs uppercase tracking-widest mb-6">
+                Ecosistema Ganadero
+            </span>
+            <h2 class="text-4xl md:text-5xl font-display font-bold text-white uppercase leading-tight mb-6">
+                Servicios <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-white">Comerciales</span>
+            </h2>
+            <p class="text-gray-400 text-lg md:text-xl font-light">
+                Redefinimos la comercialización ganadera. Cubrimos todas las etapas del ciclo productivo.
+            </p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded shadow-xl border-b-4 border-accent hover:-translate-y-2 transition-transform duration-300 group">
-                <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Card 1 (Gordo) -->
+            <div
+                class="relative group rounded-3xl p-px bg-gradient-to-b from-white/10 to-transparent hover:from-accent/50 transition-all duration-700 reveal-hidden delay-100">
+                <div
+                    class="absolute inset-0 bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl -z-10">
                 </div>
-                <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Gordo</h3>
-                <p class="text-gray-600 text-sm leading-relaxed text-center">
-                    Ventas particulares directas a frigorífico y remates feria. Buscamos las mejores condiciones comerciales.
-                </p>
+                <div
+                    class="relative bg-brand rounded-[23px] h-full p-10 overflow-hidden flex flex-col justify-between z-10">
+                    <!-- Decoración interna -->
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand-light to-transparent opacity-50 rounded-bl-[100px] transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-700">
+                    </div>
+
+                    <div>
+                        <div
+                            class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-8 group-hover:bg-accent group-hover:border-accent text-white group-hover:text-brand transition-all duration-500 shadow-[0_0_15px_rgba(0,0,0,0.2)] group-hover:shadow-[0_0_20px_rgba(203,214,48,0.4)]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <h3
+                            class="text-2xl font-bold text-white mb-4 uppercase tracking-wide group-hover:text-accent transition-colors">
+                            Gordo</h3>
+                        <p
+                            class="text-gray-400 leading-relaxed font-light mb-8 group-hover:text-gray-300 transition-colors">
+                            Ventas particulares directas a frigorífico y remates feria. Máxima rentabilidad y
+                            negociaciones transparentes.
+                        </p>
+                    </div>
+
+
+                </div>
             </div>
 
-            <div class="bg-white p-8 rounded shadow-xl border-b-4 border-accent hover:-translate-y-2 transition-transform duration-300 group">
-                <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+            <!-- Card 2 (Invernada) -->
+            <div
+                class="relative group rounded-3xl p-px bg-gradient-to-b from-white/10 to-transparent hover:from-accent/50 transition-all duration-700 reveal-hidden delay-200">
+                <div
+                    class="absolute inset-0 bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl -z-10">
                 </div>
-                <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Invernada</h3>
-                <p class="text-gray-600 text-sm leading-relaxed text-center">
-                    Conectamos las puntas del negocio. Terneros, novillitos y vaquillonas de calidad para reposición.
-                </p>
+                <div
+                    class="relative bg-brand rounded-[23px] h-full p-10 overflow-hidden flex flex-col justify-between z-10">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/10 via-brand to-brand opacity-80 group-hover:opacity-40 transition-opacity duration-700 z-0 group-hover:scale-150 transform transition-transform duration-700">
+                    </div>
+
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-8 group-hover:bg-accent group-hover:border-accent text-white group-hover:text-brand transition-all duration-500 shadow-[0_0_15px_rgba(0,0,0,0.2)] group-hover:shadow-[0_0_20px_rgba(203,214,48,0.4)]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                        </div>
+                        <h3
+                            class="text-2xl font-bold text-white mb-4 uppercase tracking-wide group-hover:text-accent transition-colors">
+                            Invernada</h3>
+                        <p
+                            class="text-gray-400 leading-relaxed font-light mb-8 group-hover:text-gray-300 transition-colors">
+                            Conectamos las puntas del negocio de forma precisa. Reposición de calidad superior:
+                            terneros, novillitos y vaquillonas.
+                        </p>
+                    </div>
+
+                </div>
             </div>
 
-            <div class="bg-white p-8 rounded shadow-xl border-b-4 border-accent hover:-translate-y-2 transition-transform duration-300 group">
-                <div class="w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-brand transition-colors duration-300">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            <!-- Card 3 (Cría) -->
+            <div
+                class="relative group rounded-3xl p-px bg-gradient-to-b from-white/10 to-transparent hover:from-accent/50 transition-all duration-700 reveal-hidden delay-300">
+                <div
+                    class="absolute inset-0 bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl -z-10">
                 </div>
-                <h3 class="text-xl font-bold text-brand mb-3 uppercase text-center">Cría y Vientres</h3>
-                <p class="text-gray-600 text-sm leading-relaxed text-center">
-                    Asesoramiento en genética y reposición de madres. Vacas preñadas, paridas y servicio.
-                </p>
+                <div
+                    class="relative bg-brand rounded-[23px] h-full p-10 overflow-hidden flex flex-col justify-between z-10">
+                    <div
+                        class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-brand-light to-transparent opacity-50 rounded-tr-[100px] transform -translate-x-10 translate-y-10 group-hover:scale-150 transition-transform duration-700">
+                    </div>
+
+                    <div>
+                        <div
+                            class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-8 group-hover:bg-accent group-hover:border-accent text-white group-hover:text-brand transition-all duration-500 shadow-[0_0_15px_rgba(0,0,0,0.2)] group-hover:shadow-[0_0_20px_rgba(203,214,48,0.4)]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3
+                            class="text-2xl font-bold text-white mb-4 uppercase tracking-wide group-hover:text-accent transition-colors">
+                            Cría y Vientres</h3>
+                        <p
+                            class="text-gray-400 leading-relaxed font-light mb-8 group-hover:text-gray-300 transition-colors">
+                            El futuro de su rodeo. Asesoramiento en genética y gestión inteligente de vientres, vacas
+                            preñadas y paridas.
+                        </p>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-24 bg-gray-50 border-t border-gray-200 relative overflow-hidden">
+<!-- Mercado Digital Preview -->
+<section class="py-24 bg-white relative overflow-hidden border-t border-gray-50">
     <div class="container mx-auto px-6">
-        
+
         {% if lote %}
-            <div class="flex flex-col md:flex-row items-center justify-between gap-10">
-                
-                <div class="md:w-1/2 text-left">
-                    <span class="text-accent font-bold tracking-widest uppercase text-xs mb-2 block">Oportunidades Activas</span>
-                    <h2 class="text-3xl md:text-4xl font-display font-bold text-brand mb-6 leading-tight">
-                        Mercado Digital <br> de Hacienda
-                    </h2>
-                    <p class="text-gray-600 text-lg mb-6 leading-relaxed">
-                        Explore nuestra <strong>vidriera online</strong>. Visualice fotos, videos y detalles de los lotes disponibles para venta particular en tiempo real.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="{{ url_for('mercado') }}" class="internal-link px-8 py-3 bg-brand text-white font-bold rounded shadow hover:bg-brand-light transition-colors uppercase text-sm tracking-wide text-center">
-                            Ver Todos los Lotes
-                        </a>
-                        {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('registro') }}" class="internal-link px-8 py-3 border border-gray-300 text-gray-600 font-bold rounded hover:border-brand hover:text-brand transition-colors uppercase text-sm tracking-wide text-center bg-white">
-                            Quiero Publicar
-                        </a>
-                        {% endif %}
-                    </div>
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-16">
+
+            <div class="lg:w-1/2 text-left reveal-hidden delay-100">
+                <div
+                    class="inline-block px-4 py-1.5 rounded-full bg-brand/5 text-brand font-bold text-xs uppercase tracking-widest mb-6 border border-brand/10">
+                    Oportunidades Activas
                 </div>
+                <h2 class="text-4xl md:text-5xl font-display font-bold text-brand mb-6 leading-tight">
+                    Mercado Digital <br><span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-brand-light">de
+                        Hacienda</span>
+                </h2>
+                <p class="text-gray-600 text-xl mb-10 leading-relaxed font-light">
+                    Explore nuestra <strong>vidriera online</strong> exclusiva. Visualice contenido multimedia y
+                    detalles precisos de los lotes disponibles para venta particular en tiempo real.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{{ url_for('mercado') }}"
+                        class="internal-link px-8 py-4 bg-brand text-white font-bold rounded-xl shadow-lg hover:bg-brand-light hover:shadow-xl hover:-translate-y-1 transition-all uppercase text-sm tracking-wide text-center">
+                        Ver Todos los Lotes
+                    </a>
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('registro') }}"
+                        class="internal-link px-8 py-4 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:border-brand hover:text-brand transition-all uppercase text-sm tracking-wide text-center">
+                        Quiero Publicar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
 
-                <div class="md:w-1/2 flex justify-center">
-                    <div class="relative w-full max-w-md bg-white rounded-2xl border border-gray-200 p-6 shadow-xl rotate-1 hover:rotate-0 transition-transform duration-500 cursor-pointer group" onclick="window.location.href='{{ url_for('mercado')}}'">
-                        
-                        <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+            <div class="lg:w-1/2 flex justify-center w-full reveal-hidden delay-300">
+                <div class="relative w-full max-w-md perspective-1000">
+                    <!-- Rotación y perspectiva -->
+                    <div class="bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-gray-100 transform rotate-[-2deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-700 cursor-pointer group hover:shadow-[0_30px_60px_rgba(6,37,65,0.15)] ring-1 ring-black/5"
+                        onclick="window.location.href='{{ url_for('mercado')}}'">
 
-                            
-                            <div class="h-64 overflow-hidden relative bg-gray-200 group">
-                                {% if lote.video_filename %}
-                                    <video class="w-full h-full object-cover" 
-                                        muted 
-                                        loop 
-                                        playsinline 
-                                        onmouseover="this.play()" 
-                                        onmouseout="this.pause()" 
-                                        {% if lote.imagen_filename %}poster="{{ url_for('static', filename=lote.imagen_filename) }}"{% endif %}>
-                                        <source src="{{ url_for('static', filename=lote.video_filename) }}" type="video/mp4">
-                                    </video>
-                                    
-                                    <div class="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm z-10 pointer-events-none">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                    </div>
+                        <div
+                            class="h-80 overflow-hidden relative bg-gray-100 group-hover:h-72 transition-all duration-700">
+                            {% if lote.video_filename %}
+                            <video class="w-full h-full object-cover" muted loop playsinline onmouseover="this.play()"
+                                onmouseout="this.pause()" {% if lote.imagen_filename
+                                %}poster="{{ url_for('static', filename=lote.imagen_filename) }}" {% endif %}>
+                                <source src="{{ url_for('static', filename=lote.video_filename) }}" type="video/mp4">
+                            </video>
 
-                                {% elif lote.imagen_filename %}
-                                    <img src="{{ url_for('static', filename=lote.imagen_filename) }}" 
-                                        alt="{{ lote.titulo }}" 
-                                        class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                                        
-                                {% else %}
-                                    <div class="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-100">
-                                        <svg class="w-12 h-12 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    </div>
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500">
+                            </div>
+                            <div
+                                class="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white p-2.5 rounded-full z-10 pointer-events-none group-hover:bg-accent group-hover:text-brand transition-all shadow-lg scale-110 group-hover:scale-100">
+                                <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </div>
+
+                            {% elif lote.imagen_filename %}
+                            <img src="{{ url_for('static', filename=lote.imagen_filename) }}" alt="{{ lote.titulo }}"
+                                class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500">
+                            </div>
+                            {% else %}
+                            <div class="flex flex-col items-center justify-center h-full text-gray-300 pb-8">
+                                <svg class="w-16 h-16 mb-2 opacity-50" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                            {% endif %}
+
+                            <div
+                                class="absolute top-5 left-5 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow z-20">
+                                {{ lote.categoria }}
+                            </div>
+                            <div
+                                class="absolute bottom-5 left-5 right-5 z-20 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                                <h3
+                                    class="text-2xl font-bold text-white leading-tight mb-2 line-clamp-1 drop-shadow-md">
+                                    {{ lote.titulo }}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-8 relative bg-white transform translate-y-0 group-hover:-translate-y-2 transition-transform duration-700">
+                            <h3 class="text-2xl font-bold text-brand leading-tight mb-4 line-clamp-2 group-hover:text-brand-light transition-colors group-hover:opacity-0 transition-opacity duration-500"
+                                style="margin-bottom: -32px;">{{ lote.titulo }}</h3>
+
+                            <div class="flex items-center gap-3 mb-5 mt-10">
+                                <span
+                                    class="px-3 py-1.5 bg-brand/5 text-brand rounded-lg text-xs font-bold uppercase tracking-wider">{{
+                                    lote.raza }}</span>
+                                {% if lote.peso %}
+                                <span
+                                    class="px-3 py-1.5 bg-brand/5 text-brand rounded-lg text-xs font-bold uppercase tracking-wider">{{
+                                    lote.peso }}</span>
                                 {% endif %}
-
-                                <div class="absolute top-4 left-4 bg-brand text-white text-xs font-bold px-3 py-1 rounded uppercase tracking-wider shadow z-20 pointer-events-none">
-                                    {{ lote.categoria }}
-                                </div>
                             </div>
-                            
-                            <div class="p-5">
-                                <h3 class="text-lg font-bold text-brand leading-tight mb-2 line-clamp-1">{{ lote.titulo }}</h3>
-                                <div class="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-3 mt-2">
-                                    <span class="font-semibold text-accent uppercase tracking-wider">{{ lote.raza }}</span>
-                                    <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        {{ lote.ubicacion_hacienda }}
-                                    </span>
-                                </div>
+
+                            <div
+                                class="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-5 mt-2">
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    {{ lote.ubicacion_hacienda }}
+                                </span>
+                                <span
+                                    class="text-brand font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                    Ver <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="absolute -top-4 -right-4 bg-accent text-brand font-bold px-4 py-2 rounded-lg shadow-lg text-sm uppercase transform rotate-3 group-hover:rotate-6 transition-transform">
-                            ¡Nuevo Ingreso!
-                        </div>
+                    <!-- Badge Flotante Superior -->
+                    <div
+                        class="absolute -top-4 -right-4 bg-gradient-to-br from-accent to-accent-dark text-brand font-black px-5 py-2.5 rounded-2xl shadow-xl text-xs uppercase tracking-widest transform rotate-6 group-hover:rotate-12 group-hover:scale-110 transition-all z-30 border-[3px] border-white">
+                        Destacado
                     </div>
                 </div>
             </div>
+        </div>
 
         {% else %}
-            <div class="max-w-3xl mx-auto text-center">
-                <div class="bg-white rounded-2xl p-10 shadow-lg border border-gray-100 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand via-accent to-brand"></div>
-                    
-                    <div class="w-20 h-20 bg-brand-light/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                    </div>
+        <!-- Estado sin lotes: diseño premium bento -->
+        <div class="max-w-4xl mx-auto text-center reveal-hidden delay-100">
+            <div
+                class="bg-gradient-to-br from-gray-50 to-white rounded-[2.5rem] p-12 md:p-16 shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-gray-100/50 relative overflow-hidden">
+                <div
+                    class="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-3xl mix-blend-multiply opacity-50">
+                </div>
+                <div
+                    class="absolute bottom-0 left-0 w-64 h-64 bg-brand/10 rounded-full blur-3xl mix-blend-multiply opacity-50">
+                </div>
 
-                    <h2 class="text-3xl font-display font-bold text-brand mb-4">
-                        El Mercado Digital está Abierto
-                    </h2>
-                    <p class="text-gray-500 text-lg mb-8 max-w-lg mx-auto">
-                        Actualmente no hay lotes destacados en vidriera, pero nuestra red de compradores está activa. 
-                        <br><strong>¡Sea el primero en publicar su hacienda!</strong>
-                    </p>
-
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('publicar') }}" class="internal-link px-8 py-3 bg-accent text-brand font-bold rounded shadow-md hover:bg-white hover:shadow-lg transition-all uppercase tracking-wide">
-                                Publicar Lote Ahora
-                            </a>
-                        {% else %}
-                            <a href="{{ url_for('registro') }}" class="internal-link px-8 py-3 bg-brand text-white font-bold rounded shadow-md hover:bg-brand-light transition-all uppercase tracking-wide">
-                                Registrarse para Vender
-                            </a>
-                            <a href="{{ url_for('login') }}" class="internal-link px-8 py-3 border border-gray-300 text-gray-600 font-bold rounded hover:text-brand hover:border-brand transition-all uppercase tracking-wide">
-                                Ingresar
-                            </a>
-                        {% endif %}
+                <div
+                    class="w-24 h-24 bg-brand/5 text-brand rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                    <div class="absolute inset-0 border-[3px] border-brand/10 rounded-full animate-ping opacity-20">
                     </div>
+                    <svg class="w-12 h-12 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                </div>
+
+                <h2 class="text-4xl md:text-5xl font-display font-bold text-brand mb-6 leading-tight">
+                    El Mercado Digital <br> está <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-dark">Abierto</span>
+                </h2>
+                <p class="text-gray-500 text-lg md:text-xl mb-12 max-w-xl mx-auto leading-relaxed">
+                    Nuestra red de compradores está activa y buscando oportunidades. Destáquese en el mercado publicando
+                    su hacienda hoy mismo.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-5 justify-center">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('publicar') }}"
+                        class="internal-link px-10 py-4 bg-brand text-white font-bold rounded-xl shadow-[0_10px_20px_rgba(6,37,65,0.2)] hover:shadow-[0_15px_30px_rgba(6,37,65,0.3)] hover:-translate-y-1 transition-all uppercase tracking-wide">
+                        Publicar Lote Ahora
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('registro') }}"
+                        class="internal-link px-10 py-4 bg-brand text-white font-bold rounded-xl shadow-[0_10px_20px_rgba(6,37,65,0.2)] hover:shadow-[0_15px_30px_rgba(6,37,65,0.3)] hover:-translate-y-1 transition-all uppercase tracking-wide">
+                        Registrarse para Vender
+                    </a>
+                    <a href="{{ url_for('login') }}"
+                        class="internal-link px-10 py-4 bg-transparent border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:border-brand hover:text-brand hover:bg-gray-50 transition-all uppercase tracking-wide">
+                        Ingresar
+                    </a>
+                    {% endif %}
                 </div>
             </div>
+        </div>
         {% endif %}
 
     </div>
 </section>
 
 
-
-
-<section class="relative py-16 bg-brand-dark text-center">
-    <div class="absolute inset-0 z-0 opacity-30">
-        <img src="{{ url_for('static', filename='images/hero_bg.jpeg') }}" class="w-full h-full object-cover" alt="Fondo">
+<!-- Banner Info -->
+<section class="relative py-28 bg-brand flex items-center justify-center overflow-hidden">
+    <!-- El problema era opacity-30 que hacía que la imagen desapareciera con el mix-blend-overlay, ahora opacity-100 reduce para ver -->
+    <div class="absolute inset-0 z-0 opacity-40 mix-blend-luminosity">
+        <img src="{{ url_for('static', filename='images/hero_bg.jpeg') }}" class="w-full h-full object-cover"
+            alt="Fondo">
     </div>
-    <div class="container mx-auto px-6 relative z-10">
-        <h2 class="text-3xl font-display font-bold text-white mb-4">INFORMACIÓN DE MERCADO</h2>
-        <p class="text-gray-300 max-w-2xl mx-auto mb-8 text-lg">
-            Acceda a nuestra <strong>gráfica interactiva </strong> exclusiva. Analice la evolución histórica de precios y tome decisiones informadas.
+    <div class="absolute inset-0 bg-gradient-to-br from-brand/95 via-brand/90 to-brand-dark/95 z-0"></div>
+
+    <div class="container mx-auto px-6 relative z-10 text-center reveal-hidden delay-100">
+        <div
+            class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md mb-8 shadow-lg ring-1 ring-white/20 transform rotate-3 hover:rotate-6 transition-transform">
+            <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+            </svg>
+        </div>
+        <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-6 uppercase tracking-wide">Información
+            <span class="text-accent">Estratégica</span>
+        </h2>
+        <p class="text-gray-300 max-w-2xl mx-auto mb-12 text-xl font-light leading-relaxed">
+            Acceda a nuestra gráfica interactiva exclusiva. Analice la evolución histórica de precios del mercado y tome
+            decisiones informadas para su negocio.
         </p>
-        <a href="{{ url_for('dashboard') }}" class="internal-link inline-block px-8 py-3 border-2 border-white text-white font-bold rounded hover:bg-white hover:text-brand transition-colors uppercase tracking-wide hover:scale-105 transform duration-200">
+        <a href="{{ url_for('dashboard') }}"
+            class="internal-link inline-flex items-center gap-3 px-10 py-5 bg-white/5 backdrop-blur-sm border border-white/30 text-white font-bold rounded-xl hover:bg-white hover:text-brand transition-all duration-300 uppercase tracking-wide shadow-xl group hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]">
             Ir a la Gráfica de Precios
+            <svg class="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3">
+                </path>
+            </svg>
         </a>
     </div>
 </section>
 
-<section id="contacto" class="py-20 bg-white">
+
+<!-- Contacto -->
+<section id="contacto" class="py-28 bg-gray-50 relative border-t border-gray-100">
     <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-display font-bold text-brand uppercase">Equipo Comercial</h2>
-            <p class="text-gray-500 mt-2">Atención personalizada y directa.</p>
+        <div class="text-center mb-20 reveal-hidden">
+            <h2 class="text-sm font-bold text-accent mb-2 uppercase tracking-widest">Hablemos</h2>
+            <h3 class="text-4xl md:text-5xl font-display font-bold text-brand uppercase">Equipo Comercial</h3>
+            <div class="w-20 h-1.5 bg-gradient-to-r from-accent to-brand mx-auto mt-8 rounded-full"></div>
+            <p class="text-gray-500 mt-6 text-xl max-w-2xl mx-auto font-light leading-relaxed">Nuestro equipo de
+                asesores está a su disposición para brindarle atención personalizada y directa.</p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            
-            <div class="text-center group">
-                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4 group-hover:border-accent transition-colors duration-300">
-                    <img src="{{ url_for('static', filename='images/alvaro.jpg') }}" 
-                         alt="Alvaro Ortiz" 
-                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+        <div class="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+
+            <!-- Asesor 1 -->
+            <div
+                class="bg-white rounded-[2rem] p-8 border border-gray-100/50 shadow-xl text-center group transform hover:-translate-y-3 hover:shadow-2xl transition-all duration-500 reveal-hidden delay-100 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-brand/5 to-transparent z-0"></div>
+
+                <div class="relative z-10">
+                    <div
+                        class="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] mb-6 group-hover:shadow-[0_15px_40px_rgba(203,214,48,0.3)] transition-all duration-500">
+                        <img src="{{ url_for('static', filename='images/alvaro.jpg') }}" alt="Alvaro Ortiz"
+                            class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <h3 class="text-2xl font-bold text-brand uppercase mb-1">Álvaro Ortiz</h3>
+                    <p class="text-sm text-accent font-bold mb-8 uppercase tracking-widest">Comercial</p>
+
+                    <a href="https://wa.me/5492262508401" target="_blank"
+                        class="flex items-center justify-center w-full py-4 bg-[#25D366]/10 text-[#075E54] rounded-xl font-bold hover:bg-[#25D366] hover:text-white transition-colors duration-300 shadow-sm hover:shadow-lg border border-[#25D366]/20 hover:border-[#25D366] group/btn">
+                        <svg class="w-5 h-5 mr-3 group-hover/btn:scale-110 transition-transform" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                        </svg>
+                        (2262) 508401
+                    </a>
                 </div>
-                <h3 class="text-lg font-bold text-brand uppercase">Álvaro Ortiz</h3>
-                <p class="text-sm text-accent font-semibold mb-3 uppercase tracking-wider">Comercial</p>
-                <a href="https://wa.me/5492262508401" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                    2262 508401
-                </a>
             </div>
 
-            <div class="text-center group">
-                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4 group-hover:border-accent transition-colors duration-300">
-                    <img src="{{ url_for('static', filename='images/juan.jpg') }}" 
-                         alt="Juan Ortiz" 
-                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+            <!-- Asesor 2 -->
+            <div
+                class="bg-white rounded-[2rem] p-8 border border-gray-100/50 shadow-xl text-center group transform hover:-translate-y-3 hover:shadow-2xl transition-all duration-500 reveal-hidden delay-200 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-brand/5 to-transparent z-0"></div>
+
+                <div class="relative z-10">
+                    <div
+                        class="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] mb-6 group-hover:shadow-[0_15px_40px_rgba(203,214,48,0.3)] transition-all duration-500">
+                        <img src="{{ url_for('static', filename='images/juan.jpg') }}" alt="Juan Ortiz"
+                            class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <h3 class="text-2xl font-bold text-brand uppercase mb-1">Juan Ortiz</h3>
+                    <p class="text-sm text-accent font-bold mb-8 uppercase tracking-widest">Comercial</p>
+
+                    <a href="https://wa.me/5492281532214" target="_blank"
+                        class="flex items-center justify-center w-full py-4 bg-[#25D366]/10 text-[#075E54] rounded-xl font-bold hover:bg-[#25D366] hover:text-white transition-colors duration-300 shadow-sm hover:shadow-lg border border-[#25D366]/20 hover:border-[#25D366] group/btn">
+                        <svg class="w-5 h-5 mr-3 group-hover/btn:scale-110 transition-transform" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                        </svg>
+                        (2281) 532214
+                    </a>
                 </div>
-                <h3 class="text-lg font-bold text-brand uppercase">Juan Ortiz</h3>
-                <p class="text-sm text-accent font-semibold mb-3 uppercase tracking-wider">Comercial</p>
-                <a href="https://wa.me/5492281532214" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                    2281 532214
-                </a>
             </div>
 
-            <div class="text-center group">
-                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4 group-hover:border-accent transition-colors duration-300">
-                    <img src="{{ url_for('static', filename='images/pedro.jpg') }}" 
-                         alt="Pedro Bosch" 
-                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+            <!-- Asesor 3 -->
+            <div
+                class="bg-white rounded-[2rem] p-8 border border-gray-100/50 shadow-xl text-center group transform hover:-translate-y-3 hover:shadow-2xl transition-all duration-500 reveal-hidden delay-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-brand/5 to-transparent z-0"></div>
+
+                <div class="relative z-10">
+                    <div
+                        class="w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] mb-6 group-hover:shadow-[0_15px_40px_rgba(203,214,48,0.3)] transition-all duration-500">
+                        <img src="{{ url_for('static', filename='images/pedro.jpg') }}" alt="Pedro Bosch"
+                            class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <h3 class="text-2xl font-bold text-brand uppercase mb-1">Pedro Bosch</h3>
+                    <p class="text-sm text-accent font-bold mb-8 uppercase tracking-widest">Comercial</p>
+
+                    <a href="https://wa.me/5491157365994" target="_blank"
+                        class="flex items-center justify-center w-full py-4 bg-[#25D366]/10 text-[#075E54] rounded-xl font-bold hover:bg-[#25D366] hover:text-white transition-colors duration-300 shadow-sm hover:shadow-lg border border-[#25D366]/20 hover:border-[#25D366] group/btn">
+                        <svg class="w-5 h-5 mr-3 group-hover/btn:scale-110 transition-transform" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                        </svg>
+                        (11) 57365994
+                    </a>
                 </div>
-                <h3 class="text-lg font-bold text-brand uppercase">Pedro Bosch</h3>
-                <p class="text-sm text-accent font-semibold mb-3 uppercase tracking-wider">Comercial</p>
-                <a href="https://wa.me/5491157365994" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors shadow-sm hover:shadow-md">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                    11 57365994
-                </a>
             </div>
 
         </div>
