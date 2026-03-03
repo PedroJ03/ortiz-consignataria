@@ -19,7 +19,25 @@
             </p>
         </div>
 
-
+        {% if request.args.get('verify_needed') %}
+        <div class="bg-blue-50 border-l-4 border-brand p-4 mb-6 rounded-r">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-bold text-gray-800">Se requiere Verificación</h3>
+                    <p class="text-sm text-gray-700 mt-1">
+                        Hemos enviado las instrucciones a tu correo electrónico. Por favor, revisa tu bandeja de entrada
+                        o carpeta de spam para activar tu cuenta antes de ingresar.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         <form class="mt-8 space-y-6" action="{{ url_for('login') }}" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="rounded-md shadow-sm -space-y-px">
@@ -44,7 +62,8 @@
                     <label for="remember" class="ml-2 block text-sm text-gray-900">Recordarme</label>
                 </div>
                 <div class="text-sm">
-                    <a href="#" class="font-medium text-brand hover:text-brand-light">¿Olvidó su clave?</a>
+                    <a href="{{ url_for('recuperar_password') }}"
+                        class="font-medium text-brand hover:text-brand-light">¿Olvidó su clave?</a>
                 </div>
             </div>
 

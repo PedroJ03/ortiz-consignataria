@@ -172,6 +172,11 @@
                         Panel de Administración
                     </a>
                     {% endif %}
+                    <a href="{{ url_for('perfil') }}"
+                        class="text-xs font-bold text-gray-300 hover:text-white uppercase tracking-wide internal-link"
+                        title="Mi Perfil">
+                        Mi Perfil
+                    </a>
                     <a href="{{ url_for('logout') }}"
                         class="text-xs font-bold text-red-300 hover:text-red-100 uppercase tracking-wide internal-link"
                         title="Cerrar Sesión">
@@ -232,6 +237,10 @@
                         PANEL DE ADMINISTRACIÓN
                     </a>
                     {% endif %}
+                    <a href="{{ url_for('perfil') }}"
+                        class="w-full py-3 border border-white/30 text-white font-bold rounded internal-link uppercase text-sm hover:bg-white/10">
+                        MI PERFIL
+                    </a>
                     <a href="{{ url_for('logout') }}"
                         class="w-full py-3 border border-red-400 text-red-300 font-bold rounded internal-link uppercase text-sm hover:bg-red-900/20">
                         CERRAR SESIÓN

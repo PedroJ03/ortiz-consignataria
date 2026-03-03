@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+
+        <div class="text-center">
+            <h2 class="text-3xl font-display font-bold text-gray-900">Recuperar Contraseña</h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Ingrese su email y le enviaremos un enlace para restablecerla.
+            </p>
+        </div>
+
+        <form class="mt-8 space-y-6" action="{{ url_for('recuperar_password') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                    <input id="email" name="email" type="email" required
+                        class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-brand focus:border-brand focus:z-10 sm:text-sm"
+                        placeholder="ejemplo@campo.com">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-brand hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors uppercase tracking-wide">
+                    Enviar Enlace
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="text-sm text-gray-600">
+                <a href="{{ url_for('login') }}"
+                    class="font-medium text-accent-dark hover:text-brand font-bold transition-colors">
+                    Volver al Login
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

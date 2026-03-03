@@ -36,6 +36,8 @@ csrf = CSRFProtect(app)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from shared_code.database import db_manager
+
 # Limitador de peticiones (Rate Limiting)
 limiter = Limiter(
     get_remote_address,
@@ -223,13 +225,41 @@ def registro():
 
         # Crear usuario
         hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
-        nuevo_id = db_manager.crear_usuario(conn, email, hashed_pw, nombre, telefono, ubicacion)
+        
+        # Token de verificación
+        import secrets
+        verification_token = secrets.token_urlsafe(32)
+        
+        nuevo_id = db_manager.crear_usuario(conn, email, hashed_pw, nombre, telefono, ubicacion, verification_token)
         
         if nuevo_id:
-            user_obj = User(id=nuevo_id, email=email, nombre=nombre)
-            login_user(user_obj)
-            flash(f'¡Cuenta creada exitosamente! Bienvenido, {nombre}.', 'success')
-            return redirect(url_for('inicio'))
+            verify_url = url_for('verificar_correo', token=verification_token, _external=True)
+            
+            cuerpo_correo = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <h2 style="color: #062541;">¡Hola {nombre}! Bienvenido a Ortiz y Cia.</h2>
+                <p>Por favor, confirma tu correo electrónico para verificar tu cuenta y comenzar a utilizar la plataforma haciendo clic en el siguiente enlace:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{verify_url}" style="padding: 12px 24px; background-color: #cbd630; color: #062541; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase;">Verificar mi cuenta</a>
+                </div>
+                <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+                <p style="word-break: break-all; color: #134b75; font-size: 0.9em;">{verify_url}</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="font-size: 0.8em; color: #666;">Si tú no solicitaste crear esta cuenta, por favor ignora este correo.</p>
+            </div>
+            """
+            
+            from shared_code.email_service import enviar_correo
+            enviado = enviar_correo(email, "Verifica tu cuenta - Ortiz y Cia.", cuerpo_correo)
+            
+            if enviado:
+                flash(f'¡Cuenta creada exitosamente, {nombre}!', 'success')
+            else:
+                # Fallback al Demo mode si no hay variables de entorno seteadas para no romper el flujo de test local
+                print(f"\n[DEMO MODE] LINK DE VERIFICACIÓN PARA {email}:\n{verify_url}\n")
+                flash(f'¡Cuenta creada exitosamente, {nombre}!', 'success')
+            
+            return redirect(url_for('login', verify_needed=1))
         else:
             flash('Error interno al registrar. Intente nuevamente.', 'error')
 
@@ -250,6 +280,10 @@ def login():
         user_data = db_manager.get_usuario_por_email(conn, email)
 
         if user_data and check_password_hash(user_data['password_hash'], password):
+            # Check si está verificado (por defecto 1 en usuarios viejos, 0 en nuevos hasta verificar)
+            if not user_data.get('is_verified', 1):
+                return redirect(url_for('login', verify_needed=1))
+
             user = User(id=user_data['id'], email=user_data['email'], nombre=user_data['nombre_completo'], es_admin=bool(user_data['es_admin']))
             login_user(user, remember=remember)
             next_page = request.args.get('next')
@@ -259,12 +293,154 @@ def login():
 
     return render_template('auth/login.html')
 
+@app.route('/verificar-correo/<token>')
+def verificar_correo(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('inicio'))
+        
+    conn = get_db_market()
+    if db_manager.verificar_correo_usuario(conn, token):
+        flash('¡Correo verificado con éxito! Ya puedes iniciar sesión.', 'success')
+    else:
+        flash('El enlace de verificación es inválido o ya ha sido utilizado.', 'error')
+        
+    return redirect(url_for('login'))
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('Sesión cerrada.', 'info')
     return redirect(url_for('inicio'))
+
+# --- PERFIL DE USUARIO ---
+@app.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def perfil():
+    conn = get_db_market()
+    user_db = db_manager.get_usuario_por_email(conn, current_user.email)
+    
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        telefono = request.form.get('telefono')
+        ubicacion = request.form.get('ubicacion')
+        
+        # Opcional password
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if len(nombre.strip()) < 3:
+            flash('El nombre es muy corto.', 'error')
+            return redirect(url_for('perfil'))
+            
+        password_hash = None
+        if password:
+            if password != confirm_password:
+                flash('Las contraseñas no coinciden.', 'error')
+                return redirect(url_for('perfil'))
+            if len(password) < 8 or not re.search(r"\d", password):
+                flash('La contraseña debe tener al menos 8 caracteres y contener un número.', 'error')
+                return redirect(url_for('perfil'))
+            password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+            
+        exito = db_manager.actualizar_perfil(conn, current_user.id, nombre, telefono, ubicacion, password_hash)
+        
+        if exito:
+            # Update current user object session
+            current_user.nombre = nombre
+            flash('Perfil actualizado con éxito.', 'success')
+        else:
+            flash('Hubo un error al tratar de actualizar el perfil.', 'error')
+            
+        return redirect(url_for('perfil'))
+        
+    return render_template('auth/perfil.html', user_db=user_db)
+
+# --- RECUPERACIÓN DE CONTRASEÑA ---
+
+from datetime import datetime, timedelta
+import secrets
+
+@app.route('/recuperar-password', methods=['GET', 'POST'])
+@limiter.limit("3 per hour")
+def recuperar_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('inicio'))
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        conn = get_db_market()
+        user_data = db_manager.get_usuario_por_email(conn, email)
+
+        if user_data:
+            token = secrets.token_urlsafe(32)
+            expiration = (datetime.now() + timedelta(hours=1)).isoformat()
+            
+            if db_manager.guardar_reset_token(conn, user_data['id'], token, expiration):
+                reset_url = url_for('reset_password', token=token, _external=True)
+                
+                cuerpo_correo = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                    <h2 style="color: #062541;">Recuperación de Contraseña</h2>
+                    <p>Hola {user_data['nombre_completo']},</p>
+                    <p>Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_url}" style="padding: 12px 24px; background-color: #062541; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase;">Restablecer Contraseña</a>
+                    </div>
+                    <p>O copia este enlace en tu navegador:</p>
+                    <p style="word-break: break-all; color: #134b75; font-size: 0.9em;">{reset_url}</p>
+                    <p style="color: #666; font-size: 0.9em;"><strong>Nota:</strong> Este enlace expirará en 1 hora por seguridad.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                    <p style="font-size: 0.8em; color: #666;">Si no solicitaste este cambio, simplemente ignora este correo. Tu contraseña no cambiará.</p>
+                </div>
+                """
+                
+                from shared_code.email_service import enviar_correo
+                enviado = enviar_correo(email, "Recuperación de Contraseña - Ortiz y Cia.", cuerpo_correo)
+                
+                if enviado:
+                    flash('Te hemos enviado un correo electrónico con instrucciones claras para restablecer tu contraseña.', 'success')
+                else:
+                    print(f"\n[DEMO MODE] LINK DE RECUPERACIÓN PARA {email}:\n{reset_url}\n")
+                    flash('Si el correo existe, se ha enviado un enlace para restablecer la contraseña.', 'success')
+            else:
+                flash('Error al generar la solicitud.', 'error')
+        else:
+            # Siempre se muestra mensaje exitoso por seguridad, para no revelar emails registrados
+            flash('Si el correo existe, se ha enviado un enlace para restablecer la contraseña.', 'success')
+
+        return redirect(url_for('login'))
+
+    return render_template('auth/recuperar.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('inicio'))
+
+    conn = get_db_market()
+    user_data = db_manager.obtener_usuario_por_reset_token(conn, token)
+
+    if not user_data:
+        flash('El enlace ha expirado o no es válido.', 'error')
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        
+        # Validación de fuerza de contraseña
+        if len(password) < 8 or not re.search(r"\d", password):
+            flash('La contraseña debe tener al menos 8 caracteres y contener un número.', 'error')
+            return render_template('auth/restablecer.html', token=token)
+
+        hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
+        if db_manager.actualizar_password(conn, user_data['id'], hashed_pw):
+            flash('Contraseña actualizada correctamente. Ya puedes iniciar sesión.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Error al actualizar la contraseña.', 'error')
+
+    return render_template('auth/restablecer.html', token=token)
 
 # --- API ENDPOINTS (Usan DB Precios) ---
 

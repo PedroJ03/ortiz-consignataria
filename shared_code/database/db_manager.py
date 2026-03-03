@@ -115,7 +115,11 @@ def crear_tablas_market(conn):
             telefono TEXT,
             ubicacion TEXT,
             fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            es_admin BOOLEAN DEFAULT 0
+            es_admin BOOLEAN DEFAULT 0,
+            reset_token TEXT,
+            reset_token_expiration TIMESTAMP,
+            is_verified BOOLEAN DEFAULT 0,
+            verification_token TEXT
         );
         """)
 
@@ -349,15 +353,15 @@ def get_usuario_por_email(conn, email):
         logger.error(f"Error buscando usuario: {e}")
         return None
 
-def crear_usuario(conn, email, password_hash, nombre, telefono, ubicacion):
-    """Crea usuario en DB Marketplace."""
+def crear_usuario(conn, email, password_hash, nombre, telefono, ubicacion, verification_token=None):
+    """Crea usuario en DB Marketplace pidiendo verificación primero."""
     sql = """
-    INSERT INTO users (email, password_hash, nombre_completo, telefono, ubicacion)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO users (email, password_hash, nombre_completo, telefono, ubicacion, is_verified, verification_token)
+    VALUES (?, ?, ?, ?, ?, 0, ?)
     """
     try:
         cursor = conn.cursor()
-        cursor.execute(sql, (email, password_hash, nombre, telefono, ubicacion))
+        cursor.execute(sql, (email, password_hash, nombre, telefono, ubicacion, verification_token))
         conn.commit()
         return cursor.lastrowid
     except sqlite3.IntegrityError:
@@ -365,6 +369,65 @@ def crear_usuario(conn, email, password_hash, nombre, telefono, ubicacion):
     except sqlite3.Error as e:
         logger.error(f"Error creando usuario: {e}")
         return None
+
+def verificar_correo_usuario(conn, token):
+    """Valida el token de registro y marca el usuario como verificado."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET is_verified = 1, verification_token = NULL WHERE verification_token = ?", (token,))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        logger.error(f"Error verificando usuario: {e}")
+        return False
+
+def guardar_reset_token(conn, user_id, token, expiration):
+    """Guarda o actualiza el token de recuperación temporal de contraseña."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET reset_token = ?, reset_token_expiration = ? WHERE id = ?", (token, expiration, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        logger.error(f"Error guardando reset token: {e}")
+        return False
+
+def obtener_usuario_por_reset_token(conn, token):
+    """Obtiene el usuario verificando si el token dado no ha expirado."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE reset_token = ? AND reset_token_expiration > datetime('now')", (token,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    except sqlite3.Error as e:
+        logger.error(f"Error obteniendo usuario por token: {e}")
+        return None
+
+def actualizar_password(conn, user_id, new_password_hash):
+    """Actualiza o cambia la contraseña del usuario y elimina el token de recuperación."""
+    try:
+        cursor = conn.cursor()
+        # Invalidamos el recovery token si la contraseña cambia exitosamente
+        cursor.execute("UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiration = NULL WHERE id = ?", (new_password_hash, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        logger.error(f"Error actualizando contraseña: {e}")
+        return False
+
+def actualizar_perfil(conn, user_id, nombre, telefono, ubicacion, password_hash=None):
+    """Actualiza los datos del usuario."""
+    try:
+        cursor = conn.cursor()
+        if password_hash:
+            cursor.execute("UPDATE users SET nombre_completo = ?, telefono = ?, ubicacion = ?, password_hash = ? WHERE id = ?", (nombre, telefono, ubicacion, password_hash, user_id))
+        else:
+            cursor.execute("UPDATE users SET nombre_completo = ?, telefono = ?, ubicacion = ? WHERE id = ?", (nombre, telefono, ubicacion, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        logger.error(f"Error actualizando perfil: {e}")
+        return False
 
 # --- GESTIÓN DE PUBLICACIONES (MARKETPLACE) ---
 
