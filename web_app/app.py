@@ -648,7 +648,7 @@ def editar_publicacion(pub_id):
     
     # Cargar datos actuales y validar propiedad para AMBOS métodos
     lote = db_manager.obtener_publicacion_por_id(conn, pub_id)
-    if not lote or lote['user_id'] != current_user.id:
+    if not lote or (lote['user_id'] != current_user.id and not current_user.es_admin):
         flash('No tienes permiso para editar esta publicación.', 'error')
         return redirect(url_for('mis_publicaciones'))
 
@@ -663,14 +663,20 @@ def editar_publicacion(pub_id):
         ubicacion = request.form.get('ubicacion')
         activo = 1 if request.form.get('activo') else 0
 
-        # Si ejecuta sin levantar excepción de SQL, consideramos éxito.
-        # Ya que validamos la existencia y propiedad arriba.
-        db_manager.actualizar_publicacion_usuario(
-            conn, pub_id, current_user.id,
-            titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo
-        )
-        flash('Publicación actualizada correctamente.', 'success')
-        return redirect(url_for('mis_publicaciones'))
+        # Guardar según el perfil del usuario (Admin vs Vendedor)
+        if current_user.es_admin:
+            db_manager.actualizar_publicacion_admin(
+                conn, pub_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo
+            )
+            flash('Publicación actualizada correctamente (Modo Admin).', 'success')
+            return redirect(url_for('admin_panel'))
+        else:
+            db_manager.actualizar_publicacion_usuario(
+                conn, pub_id, current_user.id,
+                titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo
+            )
+            flash('Publicación actualizada correctamente.', 'success')
+            return redirect(url_for('mis_publicaciones'))
         
     return render_template('marketplace/editar_publicacion.html', lote=lote)
 

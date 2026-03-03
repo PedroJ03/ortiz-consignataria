@@ -639,6 +639,22 @@ def actualizar_publicacion_usuario(conn, pub_id, user_id, titulo, categoria, raz
     except sqlite3.Error as e:
         logger.error(f"Error actualizando pub {pub_id}: {e}")
         return False
+        
+def actualizar_publicacion_admin(conn, pub_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo=1):
+    """Actualiza campos de un lote sin importar a quién pertenece (herramienta de moderación para Admins)."""
+    sql = """
+    UPDATE publicaciones 
+    SET titulo = ?, categoria = ?, raza = ?, cantidad = ?, peso_promedio = ?, precio = ?, descripcion = ?, ubicacion_hacienda = ?, activo = ?
+    WHERE id = ?
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, (titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo, pub_id))
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        logger.error(f"Error actualizando pub {pub_id} como admin: {e}")
+        return False
 
 def eliminar_publicacion_usuario(conn, pub_id, user_id):
     """Borrado físico del lote validando la propiedad."""
