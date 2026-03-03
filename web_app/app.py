@@ -631,6 +631,83 @@ def publicar():
     return render_template('marketplace/publicar.html')
 
 
+# --- RUTAS AUTOGESTIÓN USUARIO ---
+
+@app.route('/mis-publicaciones')
+@login_required
+def mis_publicaciones():
+    conn = get_db_market()
+    lotes = db_manager.obtener_publicaciones_por_usuario(conn, current_user.id)
+    return render_template('marketplace/mis_publicaciones.html', lotes=lotes)
+
+
+@app.route('/editar-publicacion/<int:pub_id>', methods=['GET', 'POST'])
+@login_required
+def editar_publicacion(pub_id):
+    conn = get_db_market()
+    
+    # Cargar datos actuales y validar propiedad para AMBOS métodos
+    lote = db_manager.obtener_publicacion_por_id(conn, pub_id)
+    if not lote or lote['user_id'] != current_user.id:
+        flash('No tienes permiso para editar esta publicación.', 'error')
+        return redirect(url_for('mis_publicaciones'))
+
+    if request.method == 'POST':
+        titulo = request.form.get('titulo')
+        categoria = request.form.get('categoria')
+        raza = request.form.get('raza')
+        cantidad = request.form.get('cantidad')
+        peso = request.form.get('peso')
+        precio = request.form.get('precio') or 0
+        descripcion = request.form.get('descripcion')
+        ubicacion = request.form.get('ubicacion')
+        activo = 1 if request.form.get('activo') else 0
+
+        # Si ejecuta sin levantar excepción de SQL, consideramos éxito.
+        # Ya que validamos la existencia y propiedad arriba.
+        db_manager.actualizar_publicacion_usuario(
+            conn, pub_id, current_user.id,
+            titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo
+        )
+        flash('Publicación actualizada correctamente.', 'success')
+        return redirect(url_for('mis_publicaciones'))
+        
+    return render_template('marketplace/editar_publicacion.html', lote=lote)
+
+
+@app.route('/eliminar-publicacion/<int:pub_id>', methods=['POST'])
+@login_required
+def eliminar_publicacion(pub_id):
+    conn = get_db_market()
+    
+    # 1. Obtener media asociada ANTES de borrar el registro
+    lote = db_manager.obtener_publicacion_por_id(conn, pub_id)
+    if not lote or lote['user_id'] != current_user.id:
+        flash('No tienes permisos.', 'error')
+        return redirect(url_for('mis_publicaciones'))
+        
+    media_items = db_manager.obtener_media_por_publicacion(conn, pub_id)
+    
+    # 2. Borrar de la DB
+    exito = db_manager.eliminar_publicacion_usuario(conn, pub_id, current_user.id)
+    
+    if exito:
+        # 3. Borrado físico de archivos
+        for item in media_items:
+            file_path = os.path.join(app.root_path, 'static', item['filename'])
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    print(f"Error borrando archivo físico {file_path}: {e}")
+                    
+        flash('Publicación eliminada permanente y exitosamente.', 'success')
+    else:
+        flash('Error al eliminar la publicación.', 'error')
+        
+    return redirect(url_for('mis_publicaciones'))
+
+
 # --- RUTA DE LA VIDRIERA (PÚBLICA) ---
 
 @app.route('/mercado')

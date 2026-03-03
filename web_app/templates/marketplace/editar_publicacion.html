@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4">
+
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="bg-brand p-6 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-display font-bold uppercase tracking-wide">Editar Lote</h2>
+                <p class="text-blue-200 text-sm">Modifica los datos de tu publicación.</p>
+            </div>
+            <a href="{{ url_for('mis_publicaciones') }}"
+                class="text-sm font-bold text-white hover:text-accent underline hidden md:block">Volver a Mis Lotes</a>
+        </div>
+
+        <form action="{{ url_for('editar_publicacion', pub_id=lote.id) }}" method="POST" class="p-8 space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Título del Lote</label>
+                <input type="text" name="titulo" required value="{{ lote.titulo }}"
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Categoría</label>
+                    <select name="categoria" required
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none bg-white">
+                        <option value="Invernada" {% if lote.categoria=='Invernada' %}selected{% endif %}>Invernada
+                        </option>
+                        <option value="Faena" {% if lote.categoria=='Faena' %}selected{% endif %}>Gordo / Faena</option>
+                        <option value="Cria" {% if lote.categoria=='Cria' %}selected{% endif %}>Cría / Vientres</option>
+                        <option value="Otro" {% if lote.categoria=='Otro' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Raza / Calidad</label>
+                    <input type="text" name="raza" value="{{ lote.raza or '' }}"
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Cabezas</label>
+                    <input type="number" name="cantidad" required value="{{ lote.cantidad }}"
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Peso Promedio (Kg)</label>
+                    <input type="number" name="peso" required value="{{ lote.peso_promedio }}"
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Precio Pretendido ($/Kg)</label>
+                    <input type="text" name="precio" value="{{ lote.precio_pretendido or '' }}"
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Ubicación de la Hacienda</label>
+                <input type="text" name="ubicacion" required value="{{ lote.ubicacion_hacienda }}"
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Descripción Adicional</label>
+                <textarea name="descripcion" rows="4"
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand outline-none">{{ lote.descripcion or '' }}</textarea>
+            </div>
+
+            <div class="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <input type="checkbox" name="activo" id="activo" value="1" {% if lote.activo %}checked{% endif %}
+                    class="w-5 h-5 mt-0.5 text-brand focus:ring-brand rounded cursor-pointer">
+                <div>
+                    <label for="activo" class="text-sm font-bold text-gray-800 cursor-pointer select-none">Mostrar
+                        públicamente</label>
+                    <p class="text-xs text-gray-500 mt-1">Si desmarcas esta opción el lote quedará oculto. Útil si la
+                        hacienda ya fue vendida y quieres guardarla en tu historial.</p>
+                </div>
+            </div>
+
+            <div
+                class="flex flex-col-reverse md:flex-row justify-between items-center pt-6 mt-6 border-t border-gray-100 gap-4">
+                <p class="text-xs text-gray-500 md:max-w-[50%] text-center md:text-left">Nota: Para cambiar fotos o
+                    videos debes borrar la publicación desde tu panel y volver a publicarla.</p>
+                <button type="submit"
+                    class="w-full md:w-auto px-8 py-3 bg-brand text-white font-bold rounded-lg shadow hover:bg-brand-light transition-all uppercase tracking-wide flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Guardar Cambios
+                </button>
+            </div>
+
+            <a href="{{ url_for('mis_publicaciones') }}"
+                class="block text-center text-sm font-bold text-gray-500 hover:text-gray-700 underline md:hidden mt-2">Cancelar
+                y Volver</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -609,5 +609,47 @@ def obtener_media_por_publicacion(conn, publicacion_id):
     sql = "SELECT filename, tipo FROM media_lotes WHERE publicacion_id = ?"
     cursor = conn.cursor()
     cursor.execute(sql, (publicacion_id,))
-    # Devolvemos lista de diccionarios para fácil uso en Jinja
     return [{'filename': row[0], 'tipo': row[1]} for row in cursor.fetchall()]
+
+# --- FUNCIONES DE AUTOGESTIÓN DE USUARIO ---
+
+def obtener_publicaciones_por_usuario(conn, user_id):
+    """Devuelve las publicaciones de un usuario específico, ordenadas por fecha."""
+    sql = "SELECT * FROM publicaciones WHERE user_id = ? ORDER BY fecha_publicacion DESC"
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+    except sqlite3.Error as e:
+        logger.error(f"Error obteniendo pubs usuario {user_id}: {e}")
+        return []
+
+def actualizar_publicacion_usuario(conn, pub_id, user_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo=1):
+    """Actualiza campos de un lote asegurando que pertenece al usuario."""
+    sql = """
+    UPDATE publicaciones 
+    SET titulo = ?, categoria = ?, raza = ?, cantidad = ?, peso_promedio = ?, precio = ?, descripcion = ?, ubicacion_hacienda = ?, activo = ?
+    WHERE id = ? AND user_id = ?
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, (titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, activo, pub_id, user_id))
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        logger.error(f"Error actualizando pub {pub_id}: {e}")
+        return False
+
+def eliminar_publicacion_usuario(conn, pub_id, user_id):
+    """Borrado físico del lote validando la propiedad."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM media_lotes WHERE publicacion_id = ?", (pub_id,))
+        cursor.execute("DELETE FROM publicaciones WHERE id = ? AND user_id = ?", (pub_id, user_id))
+        if cursor.rowcount == 0:
+            return False # Si no se eliminó nada en publicaciones, falla silenciosa
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        logger.error(f"Error eliminando pub user {pub_id}: {e}")
+        return False
