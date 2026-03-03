@@ -215,3 +215,7 @@ entorno_consignataria/
 output/
 
 uploads/
+
+#Agents
+.agents/
+.agent/

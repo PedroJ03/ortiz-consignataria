@@ -10,29 +10,34 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-16 pt-16">
 
     <div class="lg:col-span-3 space-y-6">
-        
+
         <div class="bg-white p-1 rounded-lg border border-gray-200 flex shadow-sm">
-            <button id="btn-faena" onclick="cambiarModo('faena')" class="flex-1 py-2 rounded font-semibold text-sm transition-all">
+            <button id="btn-faena" onclick="cambiarModo('faena')"
+                class="flex-1 py-2 rounded font-semibold text-sm transition-all">
                 Faena
             </button>
-            <button id="btn-invernada" onclick="cambiarModo('invernada')" class="flex-1 py-2 rounded font-semibold text-sm transition-all">
+            <button id="btn-invernada" onclick="cambiarModo('invernada')"
+                class="flex-1 py-2 rounded font-semibold text-sm transition-all">
                 Invernada
             </button>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-            <h3 class="text-brand font-bold text-xs uppercase tracking-wider mb-4 border-b pb-2">Filtros de Búsqueda</h3>
-            
+            <h3 class="text-brand font-bold text-xs uppercase tracking-wider mb-4 border-b pb-2">Filtros de Búsqueda
+            </h3>
+
             <form id="filter-form" class="space-y-4">
-                
+
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">Desde</label>
-                        <input type="text" id="date-start" class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded px-2 py-2 focus:ring-1 focus:ring-brand focus:border-brand outline-none font-medium">
+                        <input type="text" id="date-start"
+                            class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded px-2 py-2 focus:ring-1 focus:ring-brand focus:border-brand outline-none font-medium">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">Hasta</label>
-                        <input type="text" id="date-end" class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded px-2 py-2 focus:ring-1 focus:ring-brand focus:border-brand outline-none font-medium">
+                        <input type="text" id="date-end"
+                            class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded px-2 py-2 focus:ring-1 focus:ring-brand focus:border-brand outline-none font-medium">
                     </div>
                 </div>
 
@@ -41,29 +46,37 @@
                 <div id="container-subtipo-invernada" class="hidden">
                     <label class="block text-xs font-bold text-gray-500 mb-2">Tipo Hacienda</label>
                     <div class="grid grid-cols-3 gap-1">
-                        <button type="button" onclick="filtrarCategoriasInvernada('Macho')" class="btn-subtipo px-2 py-1 text-xs border rounded hover:bg-gray-50 transition-colors">Machos</button>
-                        <button type="button" onclick="filtrarCategoriasInvernada('Hembra')" class="btn-subtipo px-2 py-1 text-xs border rounded hover:bg-gray-50 transition-colors">Hembras</button>
-                        <button type="button" onclick="filtrarCategoriasInvernada('Vientre')" class="btn-subtipo px-2 py-1 text-xs border rounded hover:bg-gray-50 transition-colors">Vientres</button>
+                        <button type="button" onclick="filtrarCategoriasInvernada('Macho')"
+                            class="btn-subtipo px-2 py-1 text-xs border rounded hover:bg-gray-50 transition-colors">Machos</button>
+                        <button type="button" onclick="filtrarCategoriasInvernada('Hembra')"
+                            class="btn-subtipo px-2 py-1 text-xs border rounded hover:bg-gray-50 transition-colors">Hembras</button>
+                        <button type="button" onclick="filtrarCategoriasInvernada('Vientre')"
+                            class="btn-subtipo px-2 py-1 text-xs border rounded hover:bg-gray-50 transition-colors">Vientres</button>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-500 mb-1">Categoría</label>
-                    <select id="categoria" class="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded p-2 focus:border-brand outline-none">
+                    <select id="categoria"
+                        class="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded p-2 focus:border-brand outline-none">
                         <option>Cargando...</option>
                     </select>
                 </div>
 
                 <div id="container-raza">
                     <label class="block text-xs font-bold text-gray-500 mb-1">Raza / Calidad</label>
-                    <select id="raza" class="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded p-2 focus:border-brand outline-none disabled:bg-gray-50 disabled:text-gray-400" disabled>
+                    <select id="raza"
+                        class="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded p-2 focus:border-brand outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                        disabled>
                         <option value="">-</option>
                     </select>
                 </div>
 
                 <div id="container-peso">
                     <label class="block text-xs font-bold text-gray-500 mb-1">Peso</label>
-                    <select id="peso" class="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded p-2 focus:border-brand outline-none disabled:bg-gray-50 disabled:text-gray-400" disabled>
+                    <select id="peso"
+                        class="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded p-2 focus:border-brand outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                        disabled>
                         <option value="">-</option>
                     </select>
                 </div>
@@ -73,54 +86,86 @@
     </div>
 
     <div class="lg:col-span-9 space-y-6">
-        
+
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-[600px] relative flex flex-col">
-            
+
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-brand brand-font">Evolución de Mercado</h2>
                     <p class="text-xs text-gray-400 font-medium">Relación Precio vs. Volumen Operado</p>
                 </div>
-                
-                <div class="flex items-center gap-2 bg-gray-50 p-1 rounded border border-gray-200">
-                    <label class="text-xs font-bold text-gray-500 pl-2">Agrupar:</label>
-                    <select id="agrupacion-selector" class="bg-transparent text-xs font-bold text-brand outline-none cursor-pointer">
-                        <option value="auto" selected>Automática</option>
-                        <option value="diario">Diaria</option>
-                        <option value="semanal">Semanal</option>
-                        <option value="mensual">Mensual</option>
-                    </select>
+
+                <div class="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                    <button onclick="exportarCSV()"
+                        class="flex items-center gap-2 bg-brand text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-brand-dark transition-colors shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Exportar CSV
+                    </button>
+                    <div class="flex items-center gap-2 bg-gray-50 p-1 rounded border border-gray-200">
+                        <label class="text-xs font-bold text-gray-500 pl-2">Agrupar:</label>
+                        <select id="agrupacion-selector"
+                            class="bg-transparent text-xs font-bold text-brand outline-none cursor-pointer">
+                            <option value="auto" selected>Automática</option>
+                            <option value="diario">Diaria</option>
+                            <option value="semanal">Semanal</option>
+                            <option value="mensual">Mensual</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-            
-            <div class="relative flex-grow w-full">
-                <canvas id="mainChart"></canvas>
-                <div id="loading-spinner" class="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-10 hidden">
+
+            <div
+                class="relative flex-grow w-full flex items-center justify-center bg-gray-50 rounded border border-dashed border-gray-300">
+                <canvas id="mainChart" class="z-10 absolute inset-0 hidden w-full h-full"></canvas>
+                <div id="loading-spinner"
+                    class="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-20 hidden">
                     <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-brand"></div>
                     <p class="mt-3 text-xs text-gray-500 font-semibold">Procesando datos...</p>
+                </div>
+                <div id="empty-state"
+                    class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-0 text-center px-4">
+                    <svg class="w-12 h-12 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                    <p class="text-sm font-semibold">Selecciona una categoría</p>
+                    <p class="text-xs mt-1">Usa los filtros del panel izquierdo para visualizar la evolución de precios.
+                    </p>
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-             <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-gray-400 uppercase">Precio Máximo (Período)</p>
                     <p class="text-2xl font-bold text-brand mt-1" id="kpi-maximo">--</p>
                 </div>
                 <div class="bg-blue-50 p-2 rounded-full text-brand opacity-50">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
                 </div>
-             </div>
-             <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-gray-400 uppercase">Volumen Total (Cabezas)</p>
                     <p class="text-2xl font-bold text-brand mt-1" id="kpi-cabezas">--</p>
                 </div>
                 <div class="bg-gray-100 p-2 rounded-full text-gray-500 opacity-50">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
                 </div>
-             </div>
+            </div>
         </div>
     </div>
 
@@ -135,16 +180,16 @@
     let allInvernadaCategories = [];
 
     // Configurar Flatpickr
-// --- CONFIGURACIÓN FLATPICKR (Con evento onChange) ---
-    const commonConfig = { 
-        dateFormat: "d/m/Y", 
-        locale: "es", 
+    // --- CONFIGURACIÓN FLATPICKR (Con evento onChange) ---
+    const commonConfig = {
+        dateFormat: "d/m/Y",
+        locale: "es",
         disableMobile: "true",
-        onChange: function(selectedDates, dateStr, instance) {
+        onChange: function (selectedDates, dateStr, instance) {
             // Sincronizar fecha y actualizar si tenemos ambas
             if (instance.element.id === 'date-start') startDateGlobal = selectedDates[0];
             if (instance.element.id === 'date-end') endDateGlobal = selectedDates[0];
-            
+
             if (startDateGlobal && endDateGlobal) {
                 actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
             }
@@ -152,7 +197,7 @@
     };
     const startDefault = new Date(); startDefault.setMonth(startDefault.getMonth() - 6);
     const endDefault = new Date();
-    
+
     startDateGlobal = startDefault;
     endDateGlobal = endDefault;
 
@@ -164,25 +209,25 @@
         currentMode = modo;
         const btnFaena = document.getElementById('btn-faena');
         const btnInvernada = document.getElementById('btn-invernada');
-        
+
         const activeClass = "bg-brand text-white shadow";
         const inactiveClass = "bg-white text-gray-500 hover:bg-gray-50";
 
         if (modo === 'faena') {
             btnFaena.className = `flex-1 py-2 rounded font-semibold text-sm transition-all ${activeClass}`;
             btnInvernada.className = `flex-1 py-2 rounded font-semibold text-sm transition-all ${inactiveClass}`;
-            
+
             document.getElementById('container-raza').classList.remove('hidden');
             document.getElementById('container-peso').classList.remove('hidden');
             document.getElementById('container-subtipo-invernada').classList.add('hidden');
         } else {
             btnInvernada.className = `flex-1 py-2 rounded font-semibold text-sm transition-all ${activeClass}`;
             btnFaena.className = `flex-1 py-2 rounded font-semibold text-sm transition-all ${inactiveClass}`;
-            
+
             document.getElementById('container-raza').classList.add('hidden');
             document.getElementById('container-peso').classList.add('hidden');
             document.getElementById('container-subtipo-invernada').classList.remove('hidden');
-            
+
             document.querySelectorAll('.btn-subtipo').forEach(b => b.classList.remove('bg-brand', 'text-white'));
         }
         cargarFiltrosIniciales();
@@ -195,14 +240,21 @@
             const data = await response.json();
             const selectCat = document.getElementById('categoria');
             selectCat.innerHTML = '<option value="">Seleccione Categoría</option>';
-            
+
             if (currentMode === 'faena') {
                 data.faena.forEach(cat => agregarOpcion(selectCat, cat));
+                if (data.faena.length > 0) {
+                    selectCat.value = data.faena[0];
+                    selectCat.dispatchEvent(new Event('change'));
+                }
             } else {
                 allInvernadaCategories = data.invernada;
-                data.invernada.forEach(cat => agregarOpcion(selectCat, cat));
+                filtrarCategoriasInvernada('Macho');
             }
-            resetDependientes();
+
+            if (!selectCat.value) {
+                resetDependientes();
+            }
         } catch (e) { console.error(e); }
     }
 
@@ -217,43 +269,43 @@
     }
 
     // --- LISTENERS AUTOMÁTICOS (LIVE FILTERING) ---
-    
+
     // 1. Cambio en Categoría
-    document.getElementById('categoria').addEventListener('change', async function() {
+    document.getElementById('categoria').addEventListener('change', async function () {
         const cat = this.value;
         if (!cat) return;
-        
+
         // Si es Faena, cargar subniveles
         if (currentMode === 'faena') {
             const res = await fetch(`/api/subcategorias?categoria=${encodeURIComponent(cat)}`);
             const data = await res.json();
-            
+
             const selRaza = document.getElementById('raza');
             selRaza.innerHTML = '<option value="">Todas</option>'; selRaza.disabled = false;
             data.razas.forEach(r => agregarOpcion(selRaza, r));
-            
+
             document.getElementById('peso').innerHTML = '<option value="">Todos</option>';
             await cargarPesos(cat, null);
         }
-        
+
         actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
     });
     // 2. Cambio en Raza
-    document.getElementById('raza').addEventListener('change', async function() {
+    document.getElementById('raza').addEventListener('change', async function () {
         await cargarPesos(document.getElementById('categoria').value, this.value);
         actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
     });
 
     // 3. Cambio en Peso
-    document.getElementById('peso').addEventListener('change', function() {
+    document.getElementById('peso').addEventListener('change', function () {
         actualizarGrafico(); // <--- TRIGGER AUTOMÁTICO
     });
-    
+
     // 4. Cambio en Agrupación
-    document.getElementById('agrupacion-selector').addEventListener('change', function() {
+    document.getElementById('agrupacion-selector').addEventListener('change', function () {
         // Solo re-procesamos los datos locales, no hace falta fetch
         // Pero para simplificar y asegurar consistencia, llamamos a actualizarGrafico
-        actualizarGrafico(); 
+        actualizarGrafico();
     });
 
     // Helper para Invernada (Botones)
@@ -269,7 +321,7 @@
         // Filtrar array local
         const selectCat = document.getElementById('categoria');
         selectCat.innerHTML = '<option value="">Seleccione Categoría</option>';
-        
+
         const keywords = {
             'Macho': ['Ternero', 'Novillito', 'Holando'],
             'Hembra': ['Ternera', 'Vaquillona'],
@@ -283,30 +335,38 @@
         });
 
         filtradas.forEach(cat => agregarOpcion(selectCat, cat));
-        // No actualizamos gráfico aquí, esperamos a que el usuario elija categoría
+
+        // Auto-selección inteligente al cambiar tipo de hacienda
+        if (selectCat.options.length > 1) {
+            selectCat.selectedIndex = 1;
+            selectCat.dispatchEvent(new Event('change'));
+        } else {
+            selectCat.value = "";
+            selectCat.dispatchEvent(new Event('change'));
+        }
     }
 
-        // --- CASCADA FAENA ---
-    document.getElementById('categoria').addEventListener('change', async function() {
+    // --- CASCADA FAENA ---
+    document.getElementById('categoria').addEventListener('change', async function () {
         const cat = this.value;
         if (!cat || currentMode === 'invernada') return;
-        
+
         const res = await fetch(`/api/subcategorias?categoria=${encodeURIComponent(cat)}`);
         const data = await res.json();
-        
+
         const selRaza = document.getElementById('raza');
         selRaza.innerHTML = '<option value="">Todas</option>'; selRaza.disabled = false;
         data.razas.forEach(r => agregarOpcion(selRaza, r));
-        
+
         document.getElementById('peso').innerHTML = '<option value="">Todos</option>';
         cargarPesos(cat, null);
     });
 
-    document.getElementById('raza').addEventListener('change', function() {
+    document.getElementById('raza').addEventListener('change', function () {
         cargarPesos(document.getElementById('categoria').value, this.value);
     });
 
-async function cargarPesos(cat, raza) {
+    async function cargarPesos(cat, raza) {
         let url = `/api/subcategorias?categoria=${encodeURIComponent(cat)}`;
         if (raza) url += `&raza=${encodeURIComponent(raza)}`;
         const res = await fetch(url);
@@ -317,28 +377,36 @@ async function cargarPesos(cat, raza) {
     }
 
     // --- LÓGICA CENTRAL DE ACTUALIZACIÓN ---
-    
+
     // Variable global para guardar los datos crudos y no refetchear solo por cambiar agrupación
-    let lastRawData = []; 
+    let lastRawData = [];
 
     async function actualizarGrafico() {
         const start = startDateGlobal;
         const end = endDateGlobal;
-        
+
         if (!start || !end) return; // Aún falta una fecha
 
         const cat = document.getElementById('categoria').value;
-        if (!cat) return; // Sin categoría no graficamos
+        if (!cat) {
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = null;
+            document.getElementById('kpi-maximo').innerText = '--';
+            document.getElementById('kpi-cabezas').innerText = '--';
+            document.getElementById('mainChart').classList.add('hidden');
+            document.getElementById('empty-state').classList.remove('hidden');
+            return;
+        }
 
         const isoStart = start.toISOString().split('T')[0];
         const isoEnd = end.toISOString().split('T')[0];
-        
+
         document.getElementById('loading-spinner').classList.remove('hidden');
 
         try {
             let url = currentMode === 'faena' ? '/api/faena' : '/api/invernada';
             url += `?start=${isoStart}&end=${isoEnd}&categoria=${encodeURIComponent(cat)}`;
-            
+
             if (currentMode === 'faena') {
                 const raza = document.getElementById('raza').value;
                 const peso = document.getElementById('peso').value;
@@ -354,14 +422,14 @@ async function cargarPesos(cat, raza) {
             const chartData = procesarDatos(rawData);
             renderChart(chartData);
 
-        } catch(e) { console.error(e); } 
+        } catch (e) { console.error(e); }
         finally { document.getElementById('loading-spinner').classList.add('hidden'); }
     }
 
     function procesarDatos(data) {
         const modoAgrupacion = document.getElementById('agrupacion-selector').value;
         if (modoAgrupacion === 'diario') return data;
-        
+
         let usarMes = false;
         let usarSemana = false;
 
@@ -379,10 +447,10 @@ async function cargarPesos(cat, raza) {
             const dateStr = currentMode === 'faena' ? item.fecha_consulta : item.fecha_consulta_fin;
             const [d, m, y] = dateStr.split('/');
             const dateObj = new Date(y, m - 1, d);
-            
+
             let key;
             if (usarMes) {
-                key = `${m}/${y}`; 
+                key = `${m}/${y}`;
             } else if (usarSemana) {
                 const day = dateObj.getDay(), diff = dateObj.getDate() - day + (day == 0 ? -6 : 1);
                 const monday = new Date(dateObj.setDate(diff));
@@ -398,7 +466,7 @@ async function cargarPesos(cat, raza) {
         });
 
         return Object.keys(agrupados).map(key => ({
-            fecha_consulta: key, 
+            fecha_consulta: key,
             fecha_consulta_fin: key,
             precio_promedio_kg: agrupados[key].sumPrecio / agrupados[key].count,
             cabezas: agrupados[key].sumCabezas
@@ -413,7 +481,7 @@ async function cargarPesos(cat, raza) {
         }
         const precios = data.map(d => d.precio_promedio_kg);
         const max = Math.max(...precios);
-        const cab = currentMode === 'faena' ? data.reduce((a,b)=>a+(b.cabezas||0),0) : 0;
+        const cab = currentMode === 'faena' ? data.reduce((a, b) => a + (b.cabezas || 0), 0) : 0;
 
         const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
         document.getElementById('kpi-maximo').innerText = fmt.format(max);
@@ -421,6 +489,9 @@ async function cargarPesos(cat, raza) {
     }
 
     function renderChart(data) {
+        document.getElementById('empty-state').classList.add('hidden');
+        document.getElementById('mainChart').classList.remove('hidden');
+
         const ctx = document.getElementById('mainChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
 
@@ -429,7 +500,7 @@ async function cargarPesos(cat, raza) {
         const volumen = data.map(d => d.cabezas || 0);
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(6, 37, 65, 0.4)'); 
+        gradient.addColorStop(0, 'rgba(6, 37, 65, 0.4)');
         gradient.addColorStop(1, 'rgba(6, 37, 65, 0.0)');
 
         chartInstance = new Chart(ctx, {
@@ -440,7 +511,7 @@ async function cargarPesos(cat, raza) {
                         type: 'line',
                         label: 'Precio Promedio ($)',
                         data: precios,
-                        borderColor: '#062541', 
+                        borderColor: '#062541',
                         borderWidth: 2,
                         backgroundColor: gradient,
                         fill: true,
@@ -455,7 +526,7 @@ async function cargarPesos(cat, raza) {
                         type: 'bar',
                         label: 'Cabezas (Volumen)',
                         data: volumen,
-                        backgroundColor: 'rgba(200, 200, 200, 0.3)', 
+                        backgroundColor: 'rgba(200, 200, 200, 0.3)',
                         barPercentage: 0.6,
                         yAxisID: 'y1',
                         order: 2
@@ -466,12 +537,12 @@ async function cargarPesos(cat, raza) {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
-                plugins: { 
+                plugins: {
                     legend: { display: true, labels: { usePointStyle: true, boxWidth: 6 } },
                     tooltip: {
                         backgroundColor: '#062541', titleColor: '#FFC82C',
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 let label = context.dataset.label || '';
                                 if (label) label += ': ';
                                 if (context.dataset.type === 'line') return label + '$ ' + context.parsed.y.toLocaleString('es-AR');
@@ -485,12 +556,40 @@ async function cargarPesos(cat, raza) {
                     }
                 },
                 scales: {
-                    y: { type: 'linear', display: true, position: 'left', grid: { color: '#f3f4f6' }, ticks: { callback: v => '$'+v } },
+                    y: { type: 'linear', display: true, position: 'left', grid: { color: '#f3f4f6' }, ticks: { callback: v => '$' + v } },
                     y1: { type: 'linear', display: false, position: 'right', grid: { drawOnChartArea: false }, min: 0 },
                     x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } }
                 }
             }
         });
+    }
+
+    // --- EXPORTAR A EXCEL (CSV) ---
+    function exportarCSV() {
+        if (!chartInstance || chartInstance.data.datasets[0].data.length === 0) {
+            alert("No hay datos cargados para exportar.");
+            return;
+        }
+
+        let csvContent = "Fecha,Precio Promedio (ARS),Volumen (Cabezas)\n";
+
+        const labels = chartInstance.data.labels;
+        const precios = chartInstance.data.datasets[0].data;
+        const volumenes = chartInstance.data.datasets[1].data;
+
+        for (let i = 0; i < labels.length; i++) {
+            csvContent += `${labels[i]},${precios[i].toFixed(2)},${volumenes[i]}\n`;
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `reporte_precios_${currentMode}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     cambiarModo('faena');
