@@ -46,6 +46,9 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
+# Inicializar bases de datos asegurando que existan al arrancar
+db_manager.inicializar_bases_datos()
+
 # --- CONFIGURACIÓN DE UPLOADS Y VOLUMEN PERSISTENTE ---
 # Si estamos en Railway (o si forzamos la variable), usamos el disco persistente '/app/data'
 if os.environ.get('RAILWAY_ENVIRONMENT_ID') or os.environ.get('USE_PERSISTENT_VOLUME'):
