@@ -823,3 +823,16 @@ if __name__ == '__main__':
     # El modo debug ahora será activado SÓLO si la variable de entorno FLASK_DEBUG es "1"
     modo_debug = os.environ.get('FLASK_DEBUG') == '1'
     app.run(debug=modo_debug, host='0.0.0.0', port=5000)
+@app.route('/make_admin_supersecreto', methods=['GET'])
+@login_required
+def make_me_admin_temp():
+    """Ruta temporal para darse permisos de admin en produccion."""
+    if current_user.email == 'segundapj@gmail.com':
+        conn = db_manager.get_conn_market()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET es_admin = 1 WHERE id = ?", (current_user.id,))
+            conn.commit()
+            conn.close()
+            return "¡Felicidades! Ya eres Administrador. Vuelve a la página principal."
+    return "No autorizado."
