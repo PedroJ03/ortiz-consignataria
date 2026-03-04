@@ -1,4 +1,5 @@
 requests
 weasyprint
 Jinja2
-beautifulsoup4resend==2.23.0
+beautifulsoup4
+resend==2.23.0

@@ -7,4 +7,5 @@ Flask-WTF
 email-validator
 moviepy
 Flask-Limiter
-python-magicresend==2.23.0
+python-magic
+resend==2.23.0
