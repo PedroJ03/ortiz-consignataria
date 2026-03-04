@@ -113,6 +113,13 @@ def setup_logger(name):
         # Solo enviar email si es ERROR o CRITICAL
         mail_handler.setLevel(logging.ERROR) 
         mail_handler.setFormatter(formatter_file)
+        
+        # EVITAR BUCLE INFINITO: Si el error viene de Email_Service, NO intentar enviarlo por email
+        class NoEmailFilter(logging.Filter):
+            def filter(self, record):
+                return record.name != 'Email_Service'
+        mail_handler.addFilter(NoEmailFilter())
+        
         logger.addHandler(mail_handler)
         # logger.info("Sistema de Alertas por Email: ACTIVO")
     else:

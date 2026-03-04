@@ -50,5 +50,7 @@ def enviar_correo(destinatario, asunto, cuerpo_html):
         logger.info(f"Correo enviado exitosamente a {destinatario}")
         return True
     except Exception as e:
-        logger.error(f"Error enviando correo a {destinatario}: {str(e)}")
+        error_msg = f"Error enviando correo a {destinatario}: {str(e)}"
+        print(f"CRITICAL SMTP ERROR: {error_msg}")  # Failsafe console print
+        logger.error(error_msg)
         return False
