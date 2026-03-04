@@ -38,8 +38,16 @@ def limpiar_tabla_faena(conn):
     print("Se va a ejecutar: DELETE FROM faena")
     print(f"Se eliminarán todos los datos actuales y se recargarán desde {START_DATE.strftime('%d/%m/%Y')}.")
     print("="*50)
-    confirm = input("Escribe 'BORRAR' para confirmar la operación: ")
-    
+    if '--confirm' in sys.argv:
+        confirm = 'BORRAR'
+        print(">> Auto-confirmado vía flag --confirm")
+    else:
+        try:
+            confirm = input("Escribe 'BORRAR' para confirmar la operación: ")
+        except EOFError:
+            print(">> Entorno no interactivo detectado. Usa '--confirm' para ejecutar sin preguntar.")
+            return False
+            
     if confirm == 'BORRAR':
         try:
             # Asegúrate que el nombre de tu tabla en BBDD sea correcto ('precios_faena' o 'faena_mag')

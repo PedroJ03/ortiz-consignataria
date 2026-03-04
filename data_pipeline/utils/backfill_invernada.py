@@ -22,7 +22,17 @@ def limpiar_tabla_invernada(conn):
     print("!!! ADVERTENCIA CRÍTICA - INVERNADA !!!")
     print("Se borrará toda la tabla 'invernada'.")
     print("="*50)
-    if input("Escribe 'BORRAR' para confirmar: ") == 'BORRAR':
+    if '--confirm' in sys.argv:
+        confirm = 'BORRAR'
+        print(">> Auto-confirmado vía flag --confirm")
+    else:
+        try:
+            confirm = input("Escribe 'BORRAR' para confirmar: ")
+        except EOFError:
+            print(">> Entorno no interactivo detectado. Usa '--confirm' para ejecutar sin preguntar.")
+            return False
+            
+    if confirm == 'BORRAR':
         try:
             cursor.execute("DELETE FROM invernada")
             conn.commit()
