@@ -39,8 +39,18 @@ def enviar_correo(destinatario, asunto, cuerpo_html):
     msg.attach(mensaje_html)
 
     try:
-        # Añadido timeout de 5 segundos para que la página web no se quede colgada
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=5)
+        # Añadido timeout de 5 segundos para que la página web no se quede colgada.
+        # FIX [Errno 101] Network is unreachable en Railway: forzamos explícitamente IPv4 mediante el kwarg local_hostname o definiendo un source_address.
+        import socket
+        server = smtplib.SMTP(timeout=5)
+        # Hack para forzar IPv4, resolvemos explícitamente el DNS en ipv4 y conectamos por esa IP
+        try:
+            ipv4_ip = socket.gethostbyname(smtp_server)
+        except socket.gaierror:
+            ipv4_ip = smtp_server # fallback
+        
+        server.connect(ipv4_ip, smtp_port)
+        server.ehlo()
         server.starttls() # Asegura la conexión
         server.login(smtp_user, smtp_password)
         # El comando SMTP MAIL FROM requiere sólo la dirección de correo (smtp_user)
