@@ -39,7 +39,8 @@ def enviar_correo(destinatario, asunto, cuerpo_html):
     msg.attach(mensaje_html)
 
     try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        # Añadido timeout de 5 segundos para que la página web no se quede colgada
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=5)
         server.starttls() # Asegura la conexión
         server.login(smtp_user, smtp_password)
         # El comando SMTP MAIL FROM requiere sólo la dirección de correo (smtp_user)
