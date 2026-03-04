@@ -1,1 +1,2 @@
 Flask-Limiter==3.5.0
+resend==2.23.0
