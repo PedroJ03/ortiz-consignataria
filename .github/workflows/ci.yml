@@ -24,13 +24,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         # We need both application code dependencies and testing tools
-        pip install -r requirements_web.txt
+        pip install -r web_app/requirements_web.txt
+        pip install -r data_pipeline/requirements_pipeline.txt
         pip install -r requirements_test.txt
+        pip install -r requirements_web.txt
 
     - name: Run Pytest Test Suite
       # Env vars are populated implicitly by mock tests but we ensure TESTING mode natively
       env:
         TESTING: 'true'
         SECRET_KEY: 'ci_dummy_key_ortiz'
+        RAW_RECIPIENTS: 'dummy@test.com'
+        PYTHONPATH: '.'
       run: |
         pytest tests/ -v
