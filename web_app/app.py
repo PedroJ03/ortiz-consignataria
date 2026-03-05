@@ -285,6 +285,36 @@ def login():
         if user_data and check_password_hash(user_data['password_hash'], password):
             # Check si está verificado (por defecto 1 en usuarios viejos, 0 en nuevos hasta verificar)
             if not user_data.get('is_verified', 1):
+                import secrets
+                from shared_code.email_service import enviar_correo
+                
+                # Generamos nuevo token literal en el momento del inicio fallido
+                nuevo_token = secrets.token_urlsafe(32)
+                nombre = user_data['nombre_completo']
+                email_destino = user_data['email']
+                
+                if db_manager.regenerar_token_verificacion(conn, user_data['id'], nuevo_token):
+                    # Reenviamos el correo automáticamente
+                    verify_url = url_for('verificar_correo', token=nuevo_token, _external=True)
+                    cuerpo_correo = f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                        <h2 style="color: #062541;">¡Hola {nombre}! Validemos tu acceso a Ortiz y Cia.</h2>
+                        <p>Hemos notado que intentaste iniciar sesión pero tu cuenta aún no está verificada. Por favor, confirma tu correo electrónico haciendo clic en el siguiente enlace:</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="{verify_url}" style="padding: 12px 24px; background-color: #cbd630; color: #062541; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase;">Verificar mi cuenta</a>
+                        </div>
+                        <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+                        <p style="word-break: break-all; color: #134b75; font-size: 0.9em;">{verify_url}</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                        <p style="font-size: 0.8em; color: #666;">Este es un mensaje automático del sistema. Si tú no solicitaste esto, ignora este correo.</p>
+                    </div>
+                    """
+                    enviar_correo(email_destino, "Verifica tu cuenta para iniciar sesión - Ortiz y Cia.", cuerpo_correo)
+                    
+                    flash('Tu cuenta aún no está verificada. Te acabamos de enviar un nuevo enlace a tu correo. Por favor revísalo.', 'warning')
+                else:
+                    flash('Tu cuenta no está verificada y hubo un error al reenviar el correo. Contacta a soporte.', 'error')
+                
                 return redirect(url_for('login', verify_needed=1))
 
             user = User(id=user_data['id'], email=user_data['email'], nombre=user_data['nombre_completo'], es_admin=bool(user_data['es_admin']))

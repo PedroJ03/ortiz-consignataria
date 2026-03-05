@@ -381,6 +381,17 @@ def verificar_correo_usuario(conn, token):
         logger.error(f"Error verificando usuario: {e}")
         return False
 
+def regenerar_token_verificacion(conn, user_id, new_token):
+    """Asigna un nuevo token de verificación a un usuario existente (Ej: reenviar correo)."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET verification_token = ? WHERE id = ?", (new_token, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        logger.error(f"Error regenerando token para {user_id}: {e}")
+        return False
+
 def guardar_reset_token(conn, user_id, token, expiration):
     """Guarda o actualiza el token de recuperación temporal de contraseña."""
     try:
