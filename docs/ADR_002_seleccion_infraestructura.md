@@ -1,42 +1,47 @@
-# ADR 002: Selección de Infraestructura de Despliegue (PythonAnywhere)
+# ADR 002: Selección de Infraestructura de Despliegue (Railway)
 
-**Estado:** Aceptado
-**Fecha:** 20 de Noviembre de 2025
-**Decisor:** Pedro jossi
+**Estado:** Aceptado (Reemplaza decisión anterior sobre PythonAnywhere)
+**Fecha:** 5 de Marzo de 2026
+**Decisor:** Pedro Jossi
 
-## 1. Contexto
-El proyecto "Ortíz y Cía." ha evolucionado de scripts aislados a una aplicación web con arquitectura de Monorepo que integra:
-1.  **Web App:** Flask para visualización de datos.
-2.  **ETL:** Scrapers que se ejecutan periódicamente.
-3.  **Base de Datos:** SQLite (`precios_historicos.db`) como fuente única de verdad.
+## 1. Contexto Modificado
+Originalmente, el proyecto "Ortiz y Cía." se desplegó en PythonAnywhere debido a la facilidad para manejar bases de datos SQLite nativas y Cron Jobs en un entorno académico/inicial.
+Sin embargo, el software evolucionó incorporando funcionalidades multimedia complejas:
+1.  **Motor WeasyPrint:** Requiere librerías C nativas (`pango`, `cairo`).
+2.  **Validación Magic Bytes:** Requiere `libmagic1`.
+3.  **Compresión de Video:** Requiere `ffmpeg` instalado a nivel sistema operativo para que `MoviePy` pueda procesar subidas de los usuarios.
 
-Necesitamos un entorno de producción para desplegar el MVP que cumpla con los requisitos de bajo mantenimiento, costo reducido y compatibilidad con la arquitectura actual.
+La incapacidad de PythonAnywhere para escalar y permitir instalaciones profundas de binarios C a nivel de sistema operativo impidió la ejecución de estas nuevas dependencias. Se requería una infraestructura que soportara contenedores Docker para inyectar dichas librerías.
 
-## 2. Opciones Evaluadas
+## 2. Opciones Evaluadas para la Migración
 
-### A. PaaS Modernos (Render, Railway, Heroku)
-* **Pros:** Despliegue basado en contenedores (Docker), escalabilidad horizontal sencilla.
-* **Contras (Bloqueante):** Utilizan sistemas de archivos efímeros. Cada despliegue o reinicio borra el disco local. Esto es incompatible con nuestra base de datos SQLite, obligando a una migración compleja a PostgreSQL.
+### A. VPS Tradicional (DigitalOcean, AWS EC2)
+* **Pros:** Control absoluto del sistema operativo, permitiendo instalar cualquier binario.
+* **Contras:** Sobrecarga gigante de mantenimiento (SysAdmin). Requiere gestionar llaves SSH, actualizaciones de seguridad de Linux, configuración manual de Nginx/Gunicorn y rotación de certificados SSL.
 
-### B. VPS (DigitalOcean, AWS EC2)
-* **Pros:** Control total del sistema operativo y persistencia garantizada.
-* **Contras:** Requiere configuración manual de servidores, seguridad, certificados SSL y mantenimiento del SO (Linux), lo cual aumenta la carga operativa ("High Maintenance").
+### B. Heroku / Render
+* **Pros:** PaaS modernos con excelente soporte para contenedores Docker.
+* **Contras:** Sistemas de archivos efímeros. Al no soportar discos persistentes nativos (sin plugins costosos), cada vez que se reiniciaba el contenedor se eliminaba la base de datos `marketplace.db`, `precios_historicos.db` y todos los videos de los usuarios. Nos forzaba a re-escribir el proyecto entero a PostgreSQL y AWS S3.
 
-### C. PythonAnywhere (PaaS Clásico)
-* **Pros:** Entorno persistente nativo (compatible con SQLite), configuración visual de tareas programadas (Cron Jobs), y entorno específico para Python/Flask.
-* **Contras:** Tecnologías más antiguas, sin soporte nativo para Docker.
+### C. Railway (PaaS con Volúmenes Persistentes)
+* **Pros:** Soporta despliegue nativo mediante `Dockerfile` (permitiendo instalar `ffmpeg` y `libmagic` fácilmente). Además, ofrece **Volúmenes Persistentes** nativos, lo que significa que podemos montar una carpeta (`/app/data`) que sobrevive a los redespliegues, manteniendo intactas nuestras bases SQLite as-is y las subidas estáticas.
+* **Contras:** La capa gratuita es medida, requiere una curva de aprendizaje mínima para mapear el volumen en el `Dockerfile`.
 
 ## 3. Decisión
-Se ha decidido utilizar **PythonAnywhere** como plataforma de despliegue para la etapa actual del proyecto.
+Se ha decidido migrar y utilizar **Railway** como la infraestructura definitiva de producción, orquestando el entorno mediante un `Dockerfile`.
 
 ## 4. Justificación
-La decisión se basa en tres pilares fundamentales:
-
-1.  **Persistencia de Datos (SQLite):** PythonAnywhere trata el sistema de archivos como un disco persistente tradicional. Esto permite que los scrapers escriban en `precios_historicos.db` y la Web App lea del mismo archivo sin configuraciones complejas de volúmenes ni migraciones de motor de base de datos.
-2.  **Automatización Simplificada (Cron Jobs):** La plataforma ofrece una interfaz nativa para programar la ejecución de los scripts de scraping sin necesidad de administrar demonios de Linux (systemd/cron).
-3.  **Costo-Eficiencia:** El nivel gratuito (o de bajo costo "Hacker") es suficiente para el tráfico y procesamiento actual, cumpliendo con el requisito presupuestario del cliente.
+Railway provee el "sweet spot" exacto que exige el proyecto actualmente:
+1.  **Libertad de SO:** La contenedorización con `python:3.10-slim` nos permitió instalar las bibliotecas pesadas de compresión pre-compiladas sin fricción.
+2.  **Cero Refactorización de Código:** Gracias al Volumen Persistente de Railway (`/app/data`), pudimos mantener nuestra arquitectura ligera basada en doble SQLite y el almacenamiento local de videos sin tener que migrar meses de código hacia Buckets S3 de AWS y bases de datos SQL en red.
 
 ## 5. Consecuencias
-* **Positivas:** Despliegue inmediato sin cambios en el código (`db_manager.py` permanece intacto). Mantenimiento operativo cercano a cero.
-* **Negativas:** Se genera un acoplamiento a la infraestructura de PythonAnywhere.
-* **Mitigación:** Si el proyecto escala masivamente en el futuro (>10,000 visitas/día), se planificará una migración a PostgreSQL + Render/AWS.
+* **Positivas:** 
+  * Se implementó compresión de video y seguridad deep-file (Magic bytes) con éxito.
+  * Los despliegues ahora son reproducibles localmente construyendo la imagen Docker.
+* **Negativas:**
+  * Mayor complejidad en la configuración inicial (`railway.json`, montaje de discos en el Dashboard).
+* **Acciones de Migración (Completadas):**
+  * Se escribió el `Dockerfile`.
+  * Se modificaron las rutas duras en `.env` hacia variables de entorno de nube (`RAILWAY_VOLUME_MOUNT_PATH`).
+  * Se implementó Gunicorn como servidor WSGI de producción (`web_app.app:app`).
