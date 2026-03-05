@@ -144,6 +144,17 @@ def crear_tablas_market(conn):
         );
         """)
         
+        # 3. Media Lotes (Fotos y Videos de la publicación)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS media_lotes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            publicacion_id INTEGER NOT NULL,
+            filename TEXT NOT NULL,
+            tipo TEXT NOT NULL, -- 'imagen' o 'video'
+            FOREIGN KEY (publicacion_id) REFERENCES publicaciones(id) ON DELETE CASCADE
+        );
+        """)
+        
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_publi_fecha ON publicaciones (fecha_publicacion)")
         conn.commit()
     except sqlite3.Error as e:
