@@ -129,7 +129,15 @@ def test_auth_no_admin_bloqueado(client, mocker):
     with client.session_transaction() as sess:
         sess['_user_id'] = '2'
         
+    # Mocking standard User object without admin privileges
     mocker.patch('web_app.app.load_user', return_value=User(2, 'a@a', 'Norm', es_admin=False))
+    
+    # Needs connection mocked or DB manager will crash if it slips past auth
+    mock_conn = mocker.Mock()
+    mocker.patch('web_app.app.get_db_market', return_value=mock_conn)
+    mock_cursor = mocker.Mock()
+    mock_cursor.fetchone.return_value = {'id': 2, 'email': 'a@a', 'nombre_completo': 'Norm', 'es_admin': 0}
+    mock_conn.cursor.return_value = mock_cursor
 
     response = client.get('/admin')
     assert response.status_code == 403 # Prohibido
