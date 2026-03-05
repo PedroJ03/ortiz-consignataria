@@ -447,7 +447,7 @@ def crear_publicacion(conn, user_id, titulo, categoria, raza, cantidad, peso, pr
     """Crea una nueva publicación en el marketplace con soporte para video."""
     sql = """
     INSERT INTO publicaciones 
-    (user_id, titulo, categoria, raza, cantidad, peso_promedio, precio, descripcion, ubicacion_hacienda, imagen_filename, video_filename)
+    (user_id, titulo, categoria, raza, cantidad, peso_promedio, precio_pretendido, descripcion, ubicacion_hacienda, imagen_filename, video_filename)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
