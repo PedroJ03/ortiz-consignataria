@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 text-center">
+    <div class="container py-5">
+        <h1 class="display-1 fw-bold text-danger">500</h1>
+        <h2 class="mb-4">Error de Servidor</h2>
+        <p class="lead mb-4">Lo sentimos, ocurrió un error interno en nuestro servidor. Ya fuimos notificados e
+            intentaremos solucionarlo pronto.</p>
+        <a href="{{ url_for('inicio') }}" class="btn btn-primary px-4 py-2">Volver al Inicio</a>
+    </div>
+</section>
+{% endblock %}
