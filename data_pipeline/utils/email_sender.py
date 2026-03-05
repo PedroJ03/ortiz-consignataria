@@ -20,8 +20,8 @@ def send_report_email(destinatarios, asunto, cuerpo, archivos_adjuntos=[]):
         print("Error: Credencial RESEND_API_KEY no configurada.")
         return False
 
-    # Para entorno de pruebas gratuito, Resend exige este remitente
-    remitente = "Acme <onboarding@resend.dev>"
+    # Utilizamos el dominio oficial ya verificado en Resend
+    remitente = "Reportes Ortiz <reportes@ortizconsignatarios.com.ar>"
 
     # Normalizar destinatarios a lista si viene como string
     if isinstance(destinatarios, str):

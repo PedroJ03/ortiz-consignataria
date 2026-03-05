@@ -13,10 +13,8 @@ def enviar_correo(destinatario, asunto, cuerpo_html):
     """
     resend.api_key = os.environ.get('RESEND_API_KEY')
     
-    # Para probar en el plan gratuito, Resend obliga a usar este remitente:
-    # Una vez que verifiques tu dominio en Resend (ej: ortizycia.com.ar), podrás cambiar esto
-    # por algo como "Sistema Ortiz <contacto@ortizycia.com.ar>"
-    remitente = "Acme <onboarding@resend.dev>"
+    # Utilizamos el dominio oficial ya verificado en Resend
+    remitente = "Sistema Ortiz <no-reply@ortizconsignatarios.com.ar>"
 
     if not resend.api_key:
         logger.warning(f"No hay RESEND_API_KEY activa. Correo retenido para {destinatario}: Asunto: {asunto}")
