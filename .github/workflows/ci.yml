@@ -34,7 +34,7 @@ jobs:
       env:
         TESTING: 'true'
         SECRET_KEY: 'ci_dummy_key_ortiz'
-        RAW_RECIPIENTS: 'dummy@test.com'
+        CLIENT_EMAILS: 'dummy@test.com'
         PYTHONPATH: '.'
       run: |
         pytest tests/ -v
