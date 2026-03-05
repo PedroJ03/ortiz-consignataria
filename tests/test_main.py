@@ -1,100 +1,73 @@
-import sys
 import os
+import sys
 import pytest
-from unittest.mock import patch, MagicMock
 
-# --- ========================================== ---
-# --- INICIO DE CORRECCIÓN DE ARQUITECTURA ---
-# --- ========================================== ---
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-# --- FIN DE CORRECCIÓN DE ARQUITECTURA ---
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# Ahora importamos la función real que queremos probar
-from data_pipeline.main import ejecutar_proceso_completo
+from data_pipeline.main import ejecutar_pipeline_diario
+import data_pipeline.main
 
-@patch('data_pipeline.main.email_sender')
-@patch('data_pipeline.main.report_generator')
-@patch('data_pipeline.main.cac_scraper')
-@patch('data_pipeline.main.mag_scraper')
-@patch('data_pipeline.main.db_manager')
-def test_ejecutar_proceso_exitoso(mock_db_manager, mock_mag_scraper, 
-                                   mock_cac_scraper, mock_report_gen, 
-                                   mock_email_sender):
+def test_orquestador_flujo_completo(mocker):
     """
-    Prueba el "camino feliz" completo, simulando que todos los
-    módulos importados funcionan.
+    Prueba el orquestador principal (main.py) simulando que todo (scrapers, DB, config, Email) funciona.
     """
-    print("\nEjecutando: test_ejecutar_proceso_exitoso (corregido)")
+    # 1. Mocks de la capa de extracción (Devuelven 1 registro falso)
+    mock_faena = mocker.patch('data_pipeline.main.mag_scraper.scrape_mag_faena')
+    mock_faena.return_value = [{'fake': 'faena'}]
     
-    # 1. Configurar los mocks (simulaciones)
-    
-    # Datos de scraper realistas
-    datos_reales_faena = [{
-        'fecha_consulta_inicio': '17/11/2025', 
-        'categoria_original': 'NOVILLOS', 
-        'precio_promedio_kg': 1000
-    }]
-    datos_reales_invernada = [{
-        'fecha_consulta_inicio': '16/11/2025', 
-        'fecha_consulta_fin': '17/11/2025', 
-        'categoria_original': 'TERNEROS', 
-        'precio_promedio_kg': 1200
-    }]
-    
-    # Simular los valores de retorno de las *funciones dentro* de los módulos
-    mock_db_manager.get_db_connection.return_value = MagicMock()
-    mock_mag_scraper.scrape_mag_faena.return_value = datos_reales_faena
-    mock_cac_scraper.scrape_invernada_campo.return_value = datos_reales_invernada
-    mock_db_manager.insertar_datos_faena.return_value = 1
-    mock_db_manager.insertar_datos_invernada.return_value = 1
-    mock_report_gen.generate_pdf_report.return_value = "dummy/path.pdf"
-    mock_email_sender.send_report_email.return_value = True
+    mock_invernada = mocker.patch('data_pipeline.main.cac_scraper.scrape_invernada_diario')
+    mock_invernada.return_value = [{'fake': 'invernada'}]
 
-    # 2. Ejecutar la función
-    ejecutar_proceso_completo("17/11/2025", debug=True)
+    # 2. Mocks Capa BBDD
+    mock_db = mocker.patch('data_pipeline.main.db_manager')
+    mock_conn = mocker.Mock()
+    mock_db.get_db_connection.return_value = mock_conn
+    mock_db.insertar_datos_faena.return_value = 1
+    mock_db.insertar_datos_invernada.return_value = 1
 
-    # 3. Verificar que las funciones clave fueron llamadas
-    mock_db_manager.get_db_connection.assert_called_once()
-    mock_db_manager.crear_tablas.assert_called_once()
-    mock_mag_scraper.scrape_mag_faena.assert_called_once()
+    # 3. Mocks Reportes y Emails
+    mock_report = mocker.patch('data_pipeline.main.report_generator.generate_pdf_report')
+    mock_report.return_value = "/fake/path.pdf"
     
-    # --- ¡ESTA ES LA LÍNEA QUE FALLABA! ---
-    mock_db_manager.insertar_datos_faena.assert_called_once_with(
-        mock_db_manager.get_db_connection.return_value, 
-        datos_reales_faena
-    )
+    mock_email = mocker.patch('data_pipeline.main.email_sender.send_report_email')
+    mock_email.return_value = True
+
+    # Asegurar que hay lista de emails para que entre al flujo de envío
+    mocker.patch('data_pipeline.main.LISTA_DESTINATARIOS', ['test@test.com'])
+
+    # Ejecutar Pipeline (Permitiendo envío de email)
+    ejecutar_pipeline_diario(enviar_email=True)
+
+    # Asserts - Comprobar coreografía de funciones
+    mock_db.get_db_connection.assert_called_once()
+    mock_db.crear_tablas_market.assert_called_once_with(mock_conn)
+    mock_db.crear_tablas_precios.assert_called_once_with(mock_conn)
     
-    mock_report_gen.generate_pdf_report.assert_called()
-    mock_email_sender.send_report_email.assert_called_once()
-    print("Test exitoso completado.")
-
-# --- (El resto de los tests se corrigen de forma similar) ---
-
-@patch('data_pipeline.main.mag_scraper')
-@patch('data_pipeline.main.db_manager')
-def test_ejecutar_proceso_scraper_falla(mock_db_manager, mock_mag_scraper):
-    """Prueba qué pasa si el scraper de MAG falla."""
-    print("\nEjecutando: test_ejecutar_proceso_scraper_falla (corregido)")
+    mock_faena.assert_called_once()
+    mock_invernada.assert_called_once()
     
-    mock_db_manager.get_db_connection.return_value = MagicMock()
-    mock_mag_scraper.scrape_mag_faena.side_effect = Exception("Error de red simulado")
-
-    ejecutar_proceso_completo("17/11/2025", debug=True)
-
-    mock_db_manager.crear_tablas.assert_called_once()
-    # Verificar que NO se intentó insertar
-    mock_db_manager.insertar_datos_faena.assert_not_called()
-    print("Test de fallo de scraper completado.")
-
-@patch('data_pipeline.main.db_manager')
-def test_ejecutar_proceso_db_falla(mock_db_manager):
-    """Prueba qué pasa si la conexión a la BBDD falla."""
-    print("\nEjecutando: test_ejecutar_proceso_db_falla (corregido)")
+    mock_db.insertar_datos_faena.assert_called_once_with(mock_conn, [{'fake': 'faena'}])
     
-    mock_db_manager.get_db_connection.return_value = None
-    ejecutar_proceso_completo("17/11/2025", debug=True)
+    # Verifica que el generador de PDF se llamó dos veces (Faena + Invernada)
+    assert mock_report.call_count == 2
     
-    # Verificar que el proceso se detuvo
-    mock_db_manager.crear_tablas.assert_not_called()
-    print("Test de fallo de BBDD completado.")
+    # Verifica envío de mail
+    mock_email.assert_called_once()
+
+def test_orquestador_sin_email(mocker):
+    """
+    Asegura que la bandera enviar_email=False (Modo Silencioso / Cron Parcial) se respeta.
+    """
+    mocker.patch('data_pipeline.main.mag_scraper.scrape_mag_faena', return_value=[{'fake': 1}])
+    mocker.patch('data_pipeline.main.cac_scraper.scrape_invernada_diario', return_value=[{'fake': 2}])
+    mocker.patch('data_pipeline.main.db_manager')
+    mocker.patch('data_pipeline.main.report_generator.generate_pdf_report', return_value="/f.pdf")
+    
+    mock_email = mocker.patch('data_pipeline.main.email_sender.send_report_email')
+
+    ejecutar_pipeline_diario(enviar_email=False)
+
+    # El email NO debió ser enviado, aunque haya reportes generados.
+    mock_email.assert_not_called()

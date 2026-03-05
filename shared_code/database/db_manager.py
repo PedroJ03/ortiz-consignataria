@@ -361,7 +361,18 @@ def get_usuario_por_email(conn, email):
         row = cursor.fetchone()
         return dict(row) if row else None
     except sqlite3.Error as e:
-        logger.error(f"Error buscando usuario: {e}")
+        logger.error(f"Error buscando usuario por email: {e}")
+        return None
+
+def get_usuario_por_id(conn, user_id):
+    """Busca usuario en DB Marketplace por su ID principal."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    except sqlite3.Error as e:
+        logger.error(f"Error buscando usuario por ID: {e}")
         return None
 
 def crear_usuario(conn, email, password_hash, nombre, telefono, ubicacion, verification_token=None):

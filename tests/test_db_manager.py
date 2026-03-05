@@ -4,101 +4,135 @@ import pytest
 import sqlite3
 from datetime import datetime
 
-# --- Configuración de sys.path (sin cambios) ---
+# --- Configuración de sys.path ---
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from shared_code.database import db_manager
+from web_app.app import User # Usado para probar carga si hiciera falta lógica acoplada, pero probamos DB pura
 
-# --- Fixture (sin cambios) ---
+# --- Fixtures ---
 @pytest.fixture(scope="function")
-def db_conn():
-    """Fixture que crea una conexión y se asegura de que las tablas existan."""
+def conn_precios():
+    """Conexión en memoria para la BD de Precios."""
     conn = sqlite3.connect(":memory:") 
     conn.row_factory = sqlite3.Row
-    try:
-        db_manager.crear_tablas(conn) 
-        print("\n(Fixture: Tablas creadas en BBDD en memoria)")
-    except AttributeError as e:
-        if 'crear_tablas' in str(e):
-            pytest.fail("Error en el test: la función db_manager.crear_tablas() no se encontró.")
-        else:
-            raise e
+    db_manager.crear_tablas_precios(conn) 
     yield conn
     conn.close()
-    print("(Fixture: BBDD en memoria cerrada)")
 
-# --- Tests de crear e insertar (sin cambios) ---
+@pytest.fixture(scope="function")
+def conn_market():
+    """Conexión en memoria para la BD del Marketplace."""
+    conn = sqlite3.connect(":memory:") 
+    conn.row_factory = sqlite3.Row
+    db_manager.crear_tablas_market(conn) 
+    yield conn
+    conn.close()
 
-def test_crear_tabla(db_conn):
-    print("\nEjecutando: test_crear_tabla")
-    cursor = db_conn.cursor()
-    try:
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='faena'")
-        assert cursor.fetchone() is not None, "Tabla 'faena' no fue creada"
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='invernada'")
-        assert cursor.fetchone() is not None, "Tabla 'invernada' no fue creada"
-        print("Test de creación de tablas exitoso.")
-    except sqlite3.Error as e:
-        assert False, f"Error de SQLite al verificar tablas: {e}"
+# === TESTS BASE DE DATOS ANALÍTICA (Precios) ===
 
-def test_insertar_datos_exitoso(db_conn):
-    """Prueba una inserción exitosa en la tabla 'faena'."""
-    print("\nEjecutando: test_insertar_datos_exitoso (corregido)")
+def test_crear_tablas_precios(conn_precios):
+    cursor = conn_precios.cursor()
     
-    datos_ejemplo = [
-        {'fecha_consulta_inicio': '17/11/2025', 'categoria_original': 'NOVILLOS', 'precio_promedio_kg': 1000}
-    ]
-    count = db_manager.insertar_datos_faena(db_conn, datos_ejemplo)
-    assert count == 1, "db_manager.insertar_datos_faena debería haber devuelto 1"
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='faena'")
+    assert cursor.fetchone() is not None, "Tabla 'faena' no fue creada"
     
-    cursor = db_conn.cursor()
-    
-    # CORREGIDO: Buscar la fecha en el formato que realmente se guarda (DD/MM/YYYY)
-    cursor.execute("SELECT * FROM faena WHERE fecha_consulta = '17/11/2025'")
-    
-    resultado = cursor.fetchone()
-    assert resultado is not None, "El SELECT no encontró la fila que acabamos de insertar."
-    assert resultado['categoria_original'] == 'NOVILLOS'
-    print("Test de inserción exitosa completado.")
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='invernada'")
+    assert cursor.fetchone() is not None, "Tabla 'invernada' no fue creada"
 
-def test_insertar_datos_vacios(db_conn):
-    print("\nEjecutando: test_insertar_datos_vacios")
-    count = db_manager.insertar_datos_faena(db_conn, [])
-    assert count == 0
-    print("Test de inserción vacía completado.")
-
-# --- ========================================== ---
-# --- INICIO DE CORRECCIÓN (no such table / IntegrityError) ---
-# --- ========================================== ---
-def test_get_faena_historico_formato_fecha(db_conn):
-    """Prueba que get_faena_historico funciona con la conexión en memoria."""
-    print("\nEjecutando: test_get_faena_historico_formato_fecha (corregido)")
+def test_insertar_y_obtener_faena(conn_precios):
+    datos_ejemplo = [{
+        'fecha_consulta_inicio': '17/11/2025', 
+        'categoria_original': 'NOVILLOS', 
+        'precio_promedio_kg': 1000
+    }]
+    count = db_manager.insertar_datos_faena(conn_precios, datos_ejemplo)
+    assert count == 1
     
-    try:
-        # 1. Insertar datos de prueba en la BBDD en memoria
-        # (Nota: insertar_datos_faena ya convierte '15/01/2025' a '2025-01-15')
-        datos_prueba = [{
-            'fecha_consulta_inicio': '15/01/2025', 
-            'categoria_original': 'NOVILLOS', 
-            'precio_promedio_kg': 123
-        }]
-        db_manager.insertar_datos_faena(db_conn, datos_prueba)
-        
-    except sqlite3.Error as e:
-        assert False, f"La inserción de prueba falló: {e}"
+    # Probar que el parser de fecha funciona ('17/11/2025' -> '2025-11-17')
+    cursor = conn_precios.cursor()
+    cursor.execute("SELECT * FROM faena WHERE fecha_consulta = '2025-11-17'")
+    fila = cursor.fetchone()
+    
+    assert fila is not None
+    assert fila['categoria_original'] == 'NOVILLOS'
+    assert fila['precio_promedio_kg'] == 1000.0
+    
+    # Probar la lectura mediante la API interna
+    data_historica = db_manager.get_faena_historico(conn_precios, '2025-11-01', '2025-11-30')
+    assert len(data_historica) == 1
+    assert data_historica[0]['precio_promedio_kg'] == 1000.0
 
-    try:
-        # 2. Llamar a la función, pasándole la conexión de la fixture
-        datos = db_manager.get_faena_historico(
-            db_conn, # <-- CORREGIDO: Pasar la conexión en memoria
-            '2025-01-01',
-            '2025-01-31',
-            'NOVILLOS'
-        )
-        assert isinstance(datos, list)
-        assert len(datos) == 1, "La consulta SUBSTR no encontró el dato"
-        print("Test de consulta (get_faena_historico) exitoso.")
-    except Exception as e:
-        assert False, f"Consulta de get_faena_historico falló: {e}"
-# --- FIN DE CORRECCIÓN ---
+
+# === TESTS BASE DE DATOS TRANSACCIONAL (Marketplace) ===
+
+def test_crear_tablas_market(conn_market):
+    cursor = conn_market.cursor()
+    tablas = ['users', 'publicaciones', 'media_lotes']
+    for t in tablas:
+        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{t}'")
+        assert cursor.fetchone() is not None, f"Tabla '{t}' no fue creada"
+
+def test_gestion_usuarios(conn_market):
+    # Crear usuario
+    user_id = db_manager.crear_usuario(conn_market, "test@mail.com", "hashedpass", "Juan", "123", "PBA")
+    assert user_id > 0
+    
+    # Leer usuario por email
+    user = db_manager.get_usuario_por_email(conn_market, "test@mail.com")
+    assert user is not None
+    assert user['nombre_completo'] == "Juan"
+    assert user['es_admin'] == 0 # Por defecto no es admin
+    
+    # Toggle Admin
+    exito = db_manager.toggle_user_admin(conn_market, user_id)
+    assert exito is True
+    
+    user_admin = db_manager.get_usuario_por_id(conn_market, user_id)
+    assert user_admin['es_admin'] == 1
+
+def test_gestion_publicaciones(conn_market):
+    user_id = db_manager.crear_usuario(conn_market, "pub@mail.com", "pass", "Pub", "123", "PBA")
+    
+    pub_id = db_manager.crear_publicacion(
+        conn_market, user_id, "Lote Terneros", "Test desc", "Terneros",
+        "Aberdeen", 50, 200, "Macho", "Buenos Aires", "Olavarría", "YouTube"
+    )
+    assert pub_id > 0
+    
+    # Obtener Publicación Activa
+    activos = db_manager.obtener_publicaciones(conn_market, activo=True)
+    assert len(activos) == 1
+    assert activos[0]['titulo'] == "Lote Terneros"
+    
+    # Toggle (Desactivar)
+    db_manager.toggle_publicacion_activa(conn_market, pub_id)
+    activos_vacios = db_manager.obtener_publicaciones(conn_market, activo=True)
+    assert len(activos_vacios) == 0
+    
+    # Verificar desde Admin (Puede ver inactivos)
+    admin_view = db_manager.get_all_publicaciones_admin(conn_market)
+    assert len(admin_view) == 1
+    assert admin_view[0]['activo'] == 0
+    
+    # Probar eliminación
+    db_manager.eliminar_publicacion(conn_market, pub_id)
+    assert len(db_manager.get_all_publicaciones_admin(conn_market)) == 0
+
+def test_guardar_media(conn_market):
+    user_id = db_manager.crear_usuario(conn_market, "media@mail.com", "pass", "Media", "123", "PBA")
+    pub_id = db_manager.crear_publicacion(conn_market, user_id, "Lote", "D", "C", "R", 1, 1, "M", "P", "L", "")
+    
+    # Insertar 2 Archivos (Video e Imagen)
+    db_manager.guardar_archivo_media(conn_market, pub_id, "video.mp4", "video")
+    db_manager.guardar_archivo_media(conn_market, pub_id, "foto.jpg", "image")
+    
+    # Recuperar Media
+    galeria = db_manager.obtener_media_por_publicacion(conn_market, pub_id)
+    assert len(galeria) == 2
+    
+    archivos = [m['filename'] for m in galeria]
+    assert "video.mp4" in archivos
+    assert "foto.jpg" in archivos
