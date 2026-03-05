@@ -298,7 +298,7 @@ def login():
                     verify_url = url_for('verificar_correo', token=nuevo_token, _external=True)
                     cuerpo_correo = f"""
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                        <h2 style="color: #062541;">¡Hola {nombre}! Validemos tu acceso a Ortiz y Cia.</h2>
+                        <h2 style="color: #062541;">¡Hola {nombre}! Validemos tu acceso a Ortiz y Cia. Consignatarios</h2>
                         <p>Hemos notado que intentaste iniciar sesión pero tu cuenta aún no está verificada. Por favor, confirma tu correo electrónico haciendo clic en el siguiente enlace:</p>
                         <div style="text-align: center; margin: 30px 0;">
                             <a href="{verify_url}" style="padding: 12px 24px; background-color: #cbd630; color: #062541; text-decoration: none; border-radius: 5px; font-weight: bold; text-transform: uppercase;">Verificar mi cuenta</a>
@@ -309,7 +309,7 @@ def login():
                         <p style="font-size: 0.8em; color: #666;">Este es un mensaje automático del sistema. Si tú no solicitaste esto, ignora este correo.</p>
                     </div>
                     """
-                    enviar_correo(email_destino, "Verifica tu cuenta para iniciar sesión - Ortiz y Cia.", cuerpo_correo)
+                    enviar_correo(email_destino, "Verifica tu cuenta para iniciar sesión - Ortiz y Cia. Consignatarios", cuerpo_correo)
                     
                     flash('Tu cuenta aún no está verificada. Te acabamos de enviar un nuevo enlace a tu correo. Por favor revísalo.', 'warning')
                 else:
@@ -643,7 +643,7 @@ def publicar():
             raza=request.form.get('raza'), 
             cantidad=request.form.get('cantidad'),
             peso=request.form.get('peso'), 
-            precio=request.form.get('precio') or 0,
+            precio_pretendido=request.form.get('precio') or 0,
             descripcion=request.form.get('descripcion'), 
             ubicacion=request.form.get('ubicacion'),
             imagen_filename=portada_filename, # La foto de portada

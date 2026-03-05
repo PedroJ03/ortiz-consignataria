@@ -1,5 +1,6 @@
 import os
 from moviepy import VideoFileClip
+from moviepy.video.fx.Resize import Resize
 
 def optimizar_video(input_path, output_path):
     """
@@ -17,7 +18,7 @@ def optimizar_video(input_path, output_path):
         # Redimensionar (Manteniendo relación de aspecto)
         # Height 480 es un estándar bueno para móviles (SD)
         if clip.h > 480:
-            clip = clip.resized(height=480)
+            clip = clip.with_effects([Resize(height=480)])
         
         # Escribir el archivo optimizado
         # preset='ultrafast' es vital para que el usuario no espere tanto
