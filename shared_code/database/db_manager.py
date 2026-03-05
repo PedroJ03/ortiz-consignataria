@@ -443,7 +443,7 @@ def actualizar_perfil(conn, user_id, nombre, telefono, ubicacion, password_hash=
 # --- GESTIÓN DE PUBLICACIONES (MARKETPLACE) ---
 
 
-def crear_publicacion(conn, user_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, imagen_filename, video_filename=None):
+def crear_publicacion(conn, user_id, titulo, categoria, raza, cantidad, peso, precio_pretendido, descripcion, ubicacion, imagen_filename, video_filename=None):
     """Crea una nueva publicación en el marketplace con soporte para video."""
     sql = """
     INSERT INTO publicaciones 
@@ -452,7 +452,7 @@ def crear_publicacion(conn, user_id, titulo, categoria, raza, cantidad, peso, pr
     """
     try:
         cursor = conn.cursor()
-        cursor.execute(sql, (user_id, titulo, categoria, raza, cantidad, peso, precio, descripcion, ubicacion, imagen_filename, video_filename))
+        cursor.execute(sql, (user_id, titulo, categoria, raza, cantidad, peso, precio_pretendido, descripcion, ubicacion, imagen_filename, video_filename))
         conn.commit()
         return cursor.lastrowid
     except sqlite3.Error as e:

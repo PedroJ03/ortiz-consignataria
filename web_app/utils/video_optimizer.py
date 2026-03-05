@@ -1,6 +1,5 @@
 import os
-from moviepy import VideoFileClip
-from moviepy.video.fx.Resize import Resize
+from moviepy.editor import VideoFileClip
 
 def optimizar_video(input_path, output_path):
     """
@@ -13,12 +12,12 @@ def optimizar_video(input_path, output_path):
         
         # Opcional: Recortar si dura más de 60 segundos (Política de negocio)
         if clip.duration > 60:
-            clip = clip.with_subclip(0, 60)
+            clip = clip.subclip(0, 60)
 
         # Redimensionar (Manteniendo relación de aspecto)
         # Height 480 es un estándar bueno para móviles (SD)
         if clip.h > 480:
-            clip = clip.with_effects([Resize(height=480)])
+            clip = clip.resize(height=480)
         
         # Escribir el archivo optimizado
         # preset='ultrafast' es vital para que el usuario no espere tanto
