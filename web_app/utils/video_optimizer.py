@@ -1,5 +1,5 @@
 import os
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 def optimizar_video(input_path, output_path):
     """
