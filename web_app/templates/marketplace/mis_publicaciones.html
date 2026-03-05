@@ -30,11 +30,10 @@
             <div>
                 <div class="h-48 flex-shrink-0 relative bg-gray-200">
                     {% if lote.imagen_filename %}
-                    <img src="{{ url_for('static', filename=lote.imagen_filename) }}" alt="{{ lote.titulo }}"
-                        class="w-full h-full object-cover">
+                    <img src="/{{ lote.imagen_filename }}" alt="{{ lote.titulo }}" class="w-full h-full object-cover">
                     {% elif lote.video_filename %}
                     <video class="w-full h-full object-cover" muted>
-                        <source src="{{ url_for('static', filename=lote.video_filename) }}" type="video/mp4">
+                        <source src="/{{ lote.video_filename }}" type="video/mp4">
                     </video>
                     {% else %}
                     <div class="flex items-center justify-center h-full text-gray-400 bg-gray-100">
