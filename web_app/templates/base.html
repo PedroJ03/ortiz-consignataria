@@ -159,7 +159,7 @@
                 <img src="{{ url_for('static', filename='images/logo_blanco_circular.png') }}" alt="Ortiz y Cia"
                     id="header-logo" class="h-12 w-auto transition-transform duration-500 group-hover:scale-105">
                 <div class="flex flex-col text-white transition-all duration-300">
-                    <span class="font-display font-bold text-lg tracking-wide leading-none uppercase">Ortíz y
+                    <span class="font-display font-bold text-lg tracking-wide leading-none uppercase">Ortiz y
                         Cia.</span>
                     <span
                         class="text-[13px] font-light tracking-wider opacity-80 uppercase text-accent">Consignatarios</span>
@@ -305,9 +305,9 @@
 
     <footer class="bg-brand-dark text-white relative overflow-hidden border-t-2 border-accent">
         <!-- Watermark Decorativo Sutil -->
-        <div class="absolute -right-20 -bottom-20 opacity-[0.03] pointer-events-none">
+        <div class="absolute -right-16 -bottom-16 opacity-[0.03] pointer-events-none overflow-hidden">
             <img src="{{ url_for('static', filename='images/logo_blanco_circular.png') }}"
-                class="w-[500px] h-[500px] object-contain">
+                class="w-[500px] h-[500px] object-cover">
         </div>
 
         <div class="container mx-auto px-6 pt-16 pb-14 relative z-10">
@@ -322,8 +322,9 @@
                         gestión y remate ganadero online.
                     </p>
                     <div class="flex gap-4">
-                        <a href="#" target="_blank"
-                            class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-brand transition-colors text-white transform hover:scale-110 active:scale-95 duration-200">
+                        <a href="https://www.instagram.com/ortiz.consignatarios/" target="_blank"
+                            rel="noopener noreferrer"
+                            class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-gradient-to-tr hover:from-yellow-500 hover:via-pink-500 hover:to-purple-500 hover:text-white transition-all text-gray-300 transform hover:scale-110 active:scale-95 duration-300 shadow-sm border border-white/10 hover:border-transparent">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path
                                     d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
@@ -408,13 +409,15 @@
         <div class="bg-black/30 py-5 relative z-10 border-t border-white/5">
             <div
                 class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-                <p class="mb-3 md:mb-0 tracking-wide">&copy; 2025 Ortiz y Cia. Consignatarios. Todos los derechos
+                <p class="mb-3 md:mb-0 tracking-wide text-[10px] sm:text-xs">&copy; 2026 Ortiz y Cia. Consignatarios.
+                    Todos los derechos
                     reservados.</p>
-                <div class="flex items-center gap-2">
-                    <span class="tracking-wide text-gray-400">Desarrollo integral por</span>
+                <div class="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity duration-300">
+                    <span class="text-[10px] sm:text-[11px] text-gray-500 font-light tracking-wide">Desarrollado
+                        por</span>
                     <a href="mailto:pedrojossi03@gmail.com"
-                        class="font-display font-bold text-accent hover:text-brand transition-colors duration-300 bg-brand-light/30 hover:bg-accent px-3 py-1.5 rounded text-[10px] sm:text-[11px] uppercase tracking-widest border border-accent/20 hover:border-transparent"
-                        title="Contactar al equipo técnico">
+                        class="text-[10px] sm:text-[11px] text-gray-400 hover:text-white font-medium transition-colors"
+                        title="Contactar al desarrollador">
                         Pedro Jossi
                     </a>
                 </div>
