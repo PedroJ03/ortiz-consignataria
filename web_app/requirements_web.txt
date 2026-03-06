@@ -9,3 +9,4 @@ moviepy
 Flask-Limiter
 python-magic
 resend==2.23.0
+APScheduler==3.11.0
