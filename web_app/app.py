@@ -848,14 +848,14 @@ from data_pipeline.main import ejecutar_pipeline_diario
 if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     scheduler = BackgroundScheduler(timezone="America/Argentina/Buenos_Aires")
     
-    # 1. 14:00 - Ejecuta Scrapers, PDF y ENVÍA CORREOS
+    # 1. 11:00 - Ejecuta Scrapers, PDF y ENVÍA CORREOS
     scheduler.add_job(
         func=ejecutar_pipeline_diario,
         trigger="cron",
-        hour=14,
+        hour=11,
         minute=0,
         kwargs={"enviar_email": True},
-        id="pipeline_email_14"
+        id="pipeline_email_11"
     )
     
     # 2. 20:00 - Ejecuta Scrapers y PDF (actualiza DB) pero NO envía correos
@@ -869,39 +869,7 @@ if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     )
     
     scheduler.start()
-    logger.info("APScheduler iniciado: Tareas programadas a las 14:00 (con email) y 20:00 (sin email).")
-
-
-# --- SCHEDULER: PIPELINE DE DATOS ---
-from apscheduler.schedulers.background import BackgroundScheduler
-from data_pipeline.main import ejecutar_pipeline_diario
-
-# Evitar que el reloj se inicie dos veces en modo development (reloader de Flask)
-if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    scheduler = BackgroundScheduler(timezone="America/Argentina/Buenos_Aires")
-    
-    # 1. 14:00 - Ejecuta Scrapers, PDF y ENVÍA CORREOS
-    scheduler.add_job(
-        func=ejecutar_pipeline_diario,
-        trigger="cron",
-        hour=14,
-        minute=0,
-        kwargs={"enviar_email": True},
-        id="pipeline_email_14"
-    )
-    
-    # 2. 20:00 - Ejecuta Scrapers y PDF (actualiza DB) pero NO envía correos
-    scheduler.add_job(
-        func=ejecutar_pipeline_diario,
-        trigger="cron",
-        hour=20,
-        minute=0,
-        kwargs={"enviar_email": False},
-        id="pipeline_no_email_20"
-    )
-    
-    scheduler.start()
-    logger.info("APScheduler iniciado: Tareas programadas a las 14:00 (con email) y 20:00 (sin email).")
+    logger.info("APScheduler iniciado: Tareas programadas a las 11:00 (con email) y 20:00 (sin email).")
 
 
 # --- MANEJO DE ERRORES ---
