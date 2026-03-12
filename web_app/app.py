@@ -35,8 +35,12 @@ csrf = CSRFProtect(app)
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_cors import CORS
 
 from shared_code.database import db_manager
+
+# Habilitamos CORS para que React (localhost:5173) pueda pedir datos a Flask (localhost:5000)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Limitador de peticiones (Rate Limiting)
 limiter = Limiter(
@@ -844,32 +848,57 @@ def detalle_lote(lote_id):
 from apscheduler.schedulers.background import BackgroundScheduler
 from data_pipeline.main import ejecutar_pipeline_diario
 
-# Evitar que el reloj se inicie dos veces en modo development (reloader de Flask)
+# Evitar que el reloj se inicie dos veces en modo development (reloader de Flask) o en múltiples workers
 if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    scheduler = BackgroundScheduler(timezone="America/Argentina/Buenos_Aires")
+    import fcntl
+    import atexit
     
-    # 1. 11:00 - Ejecuta Scrapers, PDF y ENVÍA CORREOS
-    scheduler.add_job(
-        func=ejecutar_pipeline_diario,
-        trigger="cron",
-        hour=11,
-        minute=0,
-        kwargs={"enviar_email": True},
-        id="pipeline_email_11"
-    )
-    
-    # 2. 20:00 - Ejecuta Scrapers y PDF (actualiza DB) pero NO envía correos
-    scheduler.add_job(
-        func=ejecutar_pipeline_diario,
-        trigger="cron",
-        hour=20,
-        minute=0,
-        kwargs={"enviar_email": False},
-        id="pipeline_no_email_20"
-    )
-    
-    scheduler.start()
-    logger.info("APScheduler iniciado: Tareas programadas a las 11:00 (con email) y 20:00 (sin email).")
+    try:
+        # Usar un archivo de lock en /tmp para asegurar que solo un worker ejecute el scheduler
+        lock_file = open("/tmp/scheduler.lock", "w")
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        
+        # Mantenemos la referencia en el módulo (app) para que el FD no sea cerrado por garbage collection
+        app.scheduler_lock = lock_file
+        
+        scheduler = BackgroundScheduler(timezone="America/Argentina/Buenos_Aires")
+        
+        # 1. 11:00 - Ejecuta Scrapers, PDF y ENVÍA CORREOS
+        scheduler.add_job(
+            func=ejecutar_pipeline_diario,
+            trigger="cron",
+            hour=11,
+            minute=0,
+            kwargs={"enviar_email": True},
+            id="pipeline_email_11"
+        )
+        
+        # 2. 20:00 - Ejecuta Scrapers y PDF (actualiza DB) pero NO envía correos
+        scheduler.add_job(
+            func=ejecutar_pipeline_diario,
+            trigger="cron",
+            hour=20,
+            minute=0,
+            kwargs={"enviar_email": False},
+            id="pipeline_no_email_20"
+        )
+        
+        scheduler.start()
+        logger.info("APScheduler exclusivo iniciado. Tareas programadas a las 11:00 (con email) y 20:00 (sin email).")
+        
+        def cleanup_lock(*args, **kwargs):
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
+            try:
+                os.remove("/tmp/scheduler.lock")
+            except OSError:
+                pass
+        
+        atexit.register(cleanup_lock)
+        
+    except OSError:
+        # Se lanza si otro worker ya tiene el lock
+        logger.info("APScheduler bloqueado: otro worker ya tiene el lock y se encargará de las tareas programadas.")
 
 
 # --- MANEJO DE ERRORES ---
