@@ -816,7 +816,25 @@ def admin_borrar_lote(id):
         abort(403)
         
     conn = get_db_market()
+    
+    # 1. Obtener media asociada ANTES de borrar el registro
+    media_items = db_manager.obtener_media_por_publicacion(conn, id)
+    
+    # 2. Borrar de la DB
     if db_manager.eliminar_publicacion(conn, id):
+        # 3. Borrado físico de archivos
+        upload_folder = app.config.get('UPLOAD_FOLDER', '/app/data/uploads/lotes')
+        for item in media_items:
+            # Extraer solo el nombre del archivo de la ruta 'uploads/lotes/filename'
+            filename = os.path.basename(item['filename'])
+            file_path = os.path.join(upload_folder, filename)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                    logger.info(f"Archivo eliminado: {file_path}")
+                except Exception as e:
+                    logger.error(f"Error borrando archivo físico {file_path}: {e}")
+        
         flash('Publicación eliminada', 'success')
     else:
         flash('No se pudo eliminar la publicación.', 'error')
