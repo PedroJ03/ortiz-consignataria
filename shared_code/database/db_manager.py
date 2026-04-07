@@ -36,7 +36,8 @@ def get_db_connection(db_path=DB_PRECIOS_PATH):
     Por defecto conecta a precios_historicos (para compatibilidad).
     """
     try:
-        conn = sqlite3.connect(db_path)
+        # Agregamos timeout de 5 segundos para manejar colisiones de escritura (Busy Timeout)
+        conn = sqlite3.connect(db_path, timeout=5000)
         conn.row_factory = sqlite3.Row
         
         # ACTIVAR WAL (Write-Ahead Logging)

@@ -1,3 +1,16 @@
-pytest
-pytest-mock
-pytest-env
+pytest>=7.0.0
+pytest-mock>=3.10.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.0
+responses>=0.23.0
+freezegun>=1.2.0
+factory-boy>=3.3.0
+
+# Linting y calidad
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+bandit>=1.7.0
+
+# Type stubs
+types-requests>=2.31.0
