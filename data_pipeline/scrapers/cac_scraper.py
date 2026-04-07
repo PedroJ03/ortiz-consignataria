@@ -139,7 +139,13 @@ def scrape_invernada_diario(debug=False):
                     'rango_peso': None,
                     'precio_promedio_kg': limpiar_numero_campo(item.get('precio_semana_1')),
                     'cabezas': int(item.get('cantidad_semana_1') or 0),
-                    'variacion_semanal_precio': limpiar_numero_campo(item.get('variacion_precio_semana_1'))
+                    # FIX: La API devuelve el cambio ABSOLUTO en pesos (ej: 193 = $193 de aumento)
+                    # Debemos calcular el porcentaje: (variacion / precio_semana_2) * 100
+                    'variacion_semanal_precio': (
+                        (limpiar_numero_campo(item.get('variacion_precio_semana_1')) / 
+                         limpiar_numero_campo(item.get('precio_semana_2')) * 100)
+                        if limpiar_numero_campo(item.get('precio_semana_2')) > 0 else 0
+                    )
                 }
                 if reg['categoria_original'] and reg['precio_promedio_kg']:
                     datos_totales.append(reg)
