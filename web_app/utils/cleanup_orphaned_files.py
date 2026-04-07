@@ -16,7 +16,7 @@ import argparse
 from pathlib import Path
 
 # Agregar el proyecto al path
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from shared_code.database import db_manager
@@ -33,7 +33,9 @@ def cleanup_orphaned_files(upload_folder='/app/data/uploads/lotes', dry_run=Fals
     Returns:
         tuple: (archivos_eliminados, archivos_conservados, espacio_liberado_mb)
     """
-    conn = db_manager.get_db_connection_market()
+    # Usar la ruta correcta de la base de datos del marketplace
+    db_path = '/app/data/marketplace.db'
+    conn = db_manager.get_db_connection(db_path)
     if not conn:
         print("❌ Error: No se pudo conectar a la base de datos")
         return 0, 0, 0
