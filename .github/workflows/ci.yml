@@ -1,40 +1,73 @@
-name: Continuous Integration (CI)
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, develop]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-        cache: 'pip' # Cache dependencies to speed up subsequent runs
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # We need both application code dependencies and testing tools
-        pip install -r web_app/requirements_web.txt
-        pip install -r data_pipeline/requirements_pipeline.txt
-        pip install -r requirements_test.txt
-        pip install -r requirements_web.txt
-
-    - name: Run Pytest Test Suite
-      # Env vars are populated implicitly by mock tests but we ensure TESTING mode natively
-      env:
-        TESTING: 'true'
-        SECRET_KEY: 'ci_dummy_key_ortiz'
-        CLIENT_EMAILS: 'dummy@test.com'
-        PYTHONPATH: '.'
-      run: |
-        pytest tests/ -v
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libmagic1
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_test.txt
+          pip install -r web_app/requirements_web.txt
+          pip install -r data_pipeline/requirements_pipeline.txt
+      
+      - name: Lint with flake8
+        run: |
+          flake8 web_app data_pipeline shared_code --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 web_app data_pipeline shared_code --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Format check with black
+        run: |
+          black --check web_app data_pipeline shared_code tests || true
+      
+      - name: Type check with mypy
+        run: |
+          mypy web_app data_pipeline shared_code --ignore-missing-imports || true
+      
+      - name: Security scan with bandit
+        run: |
+          bandit -r web_app data_pipeline -f json -o bandit-report.json || true
+      
+      - name: Run tests with coverage
+        env:
+          TESTING: 'true'
+          SECRET_KEY: 'ci_dummy_key_ortiz'
+          CLIENT_EMAILS: 'dummy@test.com'
+          PYTHONPATH: '.'
+        run: |
+          pytest tests/ -v --cov=web_app --cov=data_pipeline --cov=shared_code --cov-report=xml --cov-report=term
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella

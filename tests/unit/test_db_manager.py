@@ -1,18 +1,23 @@
+"""
+Tests unitarios para db_manager.py
+
+Migrado desde tests/test_db_manager.py
+"""
 import sys
 import os
 import pytest
 import sqlite3
 from datetime import datetime
 
-# --- Configuración de sys.path ---
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from shared_code.database import db_manager
-from web_app.app import User # Usado para probar carga si hiciera falta lógica acoplada, pero probamos DB pura
 
-# --- Fixtures ---
+# Las fixtures conn_precios y conn_market ahora vienen de conftest.py
+# pero las dejamos aquí para backward compatibility
+
 @pytest.fixture(scope="function")
 def conn_precios():
     """Conexión en memoria para la BD de Precios."""
@@ -30,6 +35,7 @@ def conn_market():
     db_manager.crear_tablas_market(conn) 
     yield conn
     conn.close()
+
 
 # === TESTS BASE DE DATOS ANALÍTICA (Precios) ===
 

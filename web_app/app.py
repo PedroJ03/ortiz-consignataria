@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import re
 from email_validator import validate_email, EmailNotValidError
 import magic
-from web_app.utils.video_optimizer import optimizar_video
+from web_app.utils.video_optimizer_v2 import optimizar_video_async
 
 # --- SEGURIDAD Y AUTH ---
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -612,26 +612,60 @@ def publicar():
                     path_raw = os.path.join(app.config['UPLOAD_FOLDER'], raw_name)
                     path_final = os.path.join(app.config['UPLOAD_FOLDER'], final_name)
                     
-                    # Guardar y Optimizar
+                    # Guardar archivo raw
                     file.save(path_raw)
+                    
+                    # Callback para cuando termine la optimización
+                    def video_callback(raw_path, final_path, success, media_list=media_procesada, 
+                                     portada_ref=[video_portada], final_ref=[final_name]):
+                        """Callback que se ejecuta cuando termina la optimización del video."""
+                        try:
+                            if success:
+                                final_name_video = f"uploads/lotes/{final_ref[0]}"
+                                media_list.append({'name': final_name_video, 'type': 'video'})
+                                # Actualizar referencia de portada si es el primer video
+                                if not portada_ref[0]:
+                                    portada_ref[0] = final_name_video
+                                # Eliminar archivo raw
+                                if os.path.exists(raw_path):
+                                    os.remove(raw_path)
+                                logger.info(f"Video optimizado exitosamente: {final_name_video}")
+                            else:
+                                # Si falló la optimización, mover el raw como fallback
+                                os.rename(raw_path, final_path)
+                                final_name_video = f"uploads/lotes/{final_ref[0]}"
+                                media_list.append({'name': final_name_video, 'type': 'video'})
+                                if not portada_ref[0]:
+                                    portada_ref[0] = final_name_video
+                                logger.warning(f"Optimización falló, usando video sin optimizar: {final_name_video}")
+                        except Exception as e:
+                            logger.error(f"Error en callback de video: {e}")
+                    
                     try:
-                        # Asumo que importaste la funcion optimizar_video arriba
-                        exito = optimizar_video(path_raw, path_final)
-                        if exito:
-                            final_name_video = f"uploads/lotes/{final_name}"
-                            os.remove(path_raw)
-                        else:
-                            os.rename(path_raw, path_final)
-                            final_name_video = f"uploads/lotes/{final_name}"
+                        # Iniciar optimización asíncrona
+                        future = optimizar_video_async(path_raw, path_final, callback=video_callback)
+                        logger.info(f"Video encolado para optimización async: {final_name}")
                         
-                        media_procesada.append({'name': final_name_video, 'type': 'video'})
+                        # Para mantener compatibilidad con el flujo actual, agregamos a media_procesada
+                        # con un flag indicando que está procesando
+                        final_name_video = f"uploads/lotes/{final_name}"
+                        media_procesada.append({'name': final_name_video, 'type': 'video', 'processing': True})
                         
                         # Si es el primer video, lo guardamos como referencia
                         if not video_portada: 
                             video_portada = final_name_video
 
                     except Exception as e:
-                        print(f"Error procesando video {file.filename}: {e}")
+                        logger.error(f"Error encolando video {file.filename}: {e}")
+                        # Fallback: guardar sin optimizar
+                        try:
+                            os.rename(path_raw, path_final)
+                            final_name_video = f"uploads/lotes/{final_name}"
+                            media_procesada.append({'name': final_name_video, 'type': 'video'})
+                            if not video_portada: 
+                                video_portada = final_name_video
+                        except Exception as fallback_e:
+                            logger.error(f"Error en fallback de video: {fallback_e}")
 
         # 3. Guardar Publicación Principal (Tabla 'publicaciones')
         conn = get_db_market()

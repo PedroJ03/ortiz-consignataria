@@ -1,13 +1,17 @@
+"""
+Tests de integración para la aplicación Flask.
+
+Migrado desde tests/test_app.py
+"""
 import pytest
 import sys
 import os
 import json
 
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-# Parche temporal para asegurar que no se levanta la BD real al importar app
 os.environ['TESTING'] = 'true'
 os.environ['SECRET_KEY'] = 'test-secret'
 
@@ -15,16 +19,6 @@ from web_app.app import app, User
 from shared_code.database import db_manager
 import sqlite3
 
-@pytest.fixture
-def client():
-    """Configura el cliente de pruebas de Flask y una BD en memoria temporal para mercado."""
-    app.config['TESTING'] = True
-    app.config['WTF_CSRF_ENABLED'] = False # Apagar CSRF para tests
-    
-    # Preparar el contexto
-    with app.test_client() as client:
-        with app.app_context():
-            yield client
 
 # === TESTS RUTAS PÚBLICAS ===
 
