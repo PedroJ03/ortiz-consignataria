@@ -13,12 +13,14 @@ Mejoras:
 - Logging detallado
 """
 
+from __future__ import annotations
+
 import os
 import subprocess
 import logging
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import ThreadPoolExecutor, Future, TimeoutError as FutureTimeoutError
 from functools import partial
 from typing import Callable, Optional
 
@@ -231,7 +233,7 @@ def optimizar_video_async(
     input_path: str,
     output_path: str,
     callback: Optional[Callable[[str, str, bool], None]] = None
-) -> 'concurrent.futures.Future[bool]':
+) -> Future[bool]:
     """
     Versión asíncrona: Procesa el video en un thread separado con semáforo.
     
