@@ -216,6 +216,14 @@ output/
 
 uploads/
 
-#Agents
+# Agents / AI Configuration
 .agents/
 .agent/
+.atl/
+
+# OpenCode / AI IDE
+.opencode/
+*.prompt.md
+.aider*
+.cursorrules
+.claude*
