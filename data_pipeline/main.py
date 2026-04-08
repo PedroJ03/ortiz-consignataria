@@ -36,6 +36,58 @@ logger = setup_logger('Pipeline_Orquestador')
 # Configuración Email
 RECIPIENT_EMAIL = os.getenv('ALERT_RECIPIENT') # O una variable específica CLIENT_EMAILS
 
+def _calcular_variacion_faena(conn, datos_faena):
+    """
+    Enriquece los datos de faena con la variación semanal calculada.
+    Consulta el precio más cercano disponible a 7 días atrás para cada registro.
+    Si no hay datos exactos de -7 días, busca el último dato disponible anterior.
+    """
+    from datetime import datetime, timedelta
+    
+    cursor = conn.cursor()
+    datos_enriquecidos = []
+    
+    for item in datos_faena:
+        # Calcular fecha de hace 7 días
+        fecha_actual = datetime.strptime(item['fecha_consulta_inicio'], '%d/%m/%Y')
+        fecha_7dias_atras = (fecha_actual - timedelta(days=7)).strftime('%Y-%m-%d')
+        
+        # Consultar el precio más reciente disponible antes o en la fecha de hace 7 días
+        # Esto maneja casos donde no hay datos exactos (fin de semana, feriado)
+        cursor.execute("""
+            SELECT precio_promedio_kg, fecha_consulta
+            FROM faena 
+            WHERE fecha_consulta <= ? 
+            AND categoria_original = ? 
+            AND (raza = ? OR (raza IS NULL AND ? IS NULL))
+            AND (rango_peso = ? OR (rango_peso IS NULL AND ? IS NULL))
+            ORDER BY fecha_consulta DESC
+            LIMIT 1
+        """, (
+            fecha_7dias_atras,
+            item['categoria_original'],
+            item.get('raza', ''), item.get('raza', ''),
+            item.get('rango_peso', ''), item.get('rango_peso', '')
+        ))
+        
+        row = cursor.fetchone()
+        if row and row[0] and row[0] > 0:
+            precio_referencia = row[0]
+            fecha_referencia = row[1]
+            precio_actual = item['precio_promedio_kg']
+            variacion = round(((precio_actual - precio_referencia) / precio_referencia) * 100, 2)
+            item['variacion_semanal_precio'] = variacion
+            # Guardamos la fecha de referencia para debugging
+            item['fecha_referencia_variacion'] = fecha_referencia
+        else:
+            item['variacion_semanal_precio'] = None
+            item['fecha_referencia_variacion'] = None
+        
+        datos_enriquecidos.append(item)
+    
+    return datos_enriquecidos
+
+
 def ejecutar_pipeline_diario(enviar_email=True):
     logger.info(f"--- INICIANDO PIPELINE (Email: {enviar_email}) ---")
     
@@ -68,11 +120,14 @@ def ejecutar_pipeline_diario(enviar_email=True):
             resumen_faena = len(datos_faena)
             logger.info(f"   -> Faena: {count} registros insertados/actualizados.")
             
+            # Enriquecer datos con variación semanal antes de generar PDF
+            logger.info("   -> Calculando variación semanal para el reporte...")
+            datos_faena_con_variacion = _calcular_variacion_faena(conn, datos_faena)
+            
             # Generar PDF
             try:
-                # Usamos la función genérica o específica según tu report_generator
                 path_pdf = report_generator.generate_pdf_report(
-                    datos_faena,
+                    datos_faena_con_variacion,
                     filename=f"reporte_Faena_{hoy.strftime('%Y-%m-%d')}.pdf",
                     template_name="report_template.html"
                 )

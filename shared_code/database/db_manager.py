@@ -292,33 +292,44 @@ def insertar_datos_invernada(conn, lista_datos_invernada):
 
 def get_faena_historico(conn, start_date, end_date, categoria=None, raza=None, rango_peso=None):
     """
-    Devuelve los datos para el Dashboard incluyendo CABEZAS.
+    Devuelve los datos para el Dashboard incluyendo CABEZAS y VARIACIÓN SEMANAL.
+    La variación se calcula comparando con el precio de 7 días atrás.
     """
-    # Se agrega 'cabezas' al SELECT
+    # Query con LEFT JOIN para obtener el precio de 7 días atrás y calcular la variación
     base_query = """
         SELECT 
-            strftime('%d/%m/%Y', fecha_consulta) as fecha_consulta, 
-            precio_promedio_kg,
-            cabezas,  -- <--- ¡ESTO FALTABA!
-            categoria_original,
-            raza,
-            rango_peso
-        FROM faena 
-        WHERE fecha_consulta BETWEEN ? AND ?
+            strftime('%d/%m/%Y', f.fecha_consulta) as fecha_consulta, 
+            f.precio_promedio_kg,
+            f.cabezas,
+            f.categoria_original,
+            f.raza,
+            f.rango_peso,
+            f_prev.precio_promedio_kg as precio_7dias_atras,
+            CASE 
+                WHEN f_prev.precio_promedio_kg IS NOT NULL AND f_prev.precio_promedio_kg > 0 
+                THEN ROUND(((f.precio_promedio_kg - f_prev.precio_promedio_kg) / f_prev.precio_promedio_kg) * 100, 2)
+                ELSE NULL 
+            END as variacion_semanal_precio
+        FROM faena f
+        LEFT JOIN faena f_prev ON f_prev.fecha_consulta = date(f.fecha_consulta, '-7 days')
+            AND f_prev.categoria_original = f.categoria_original
+            AND (f_prev.raza = f.raza OR (f_prev.raza IS NULL AND f.raza IS NULL))
+            AND (f_prev.rango_peso = f.rango_peso OR (f_prev.rango_peso IS NULL AND f.rango_peso IS NULL))
+        WHERE f.fecha_consulta BETWEEN ? AND ?
     """
     params = [start_date, end_date]
 
     if categoria:
-        base_query += " AND categoria_original = ?"
+        base_query += " AND f.categoria_original = ?"
         params.append(categoria)
     if raza:
-        base_query += " AND raza = ?"
+        base_query += " AND f.raza = ?"
         params.append(raza)
     if rango_peso:
-        base_query += " AND rango_peso = ?"
+        base_query += " AND f.rango_peso = ?"
         params.append(rango_peso)
     
-    base_query += " ORDER BY faena.fecha_consulta ASC"
+    base_query += " ORDER BY f.fecha_consulta ASC"
     
     cursor = conn.cursor()
     cursor.execute(base_query, tuple(params))

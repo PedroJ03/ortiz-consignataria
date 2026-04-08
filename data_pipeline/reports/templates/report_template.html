@@ -148,6 +148,11 @@
         .raza-info { display: block; }
         .peso-info { font-weight: normal; color: #777; font-size: 8.5pt; margin-left: 5px; }
 
+        /* Estilos para variación semanal */
+        .var-pos { color: #16a34a; font-weight: bold; }
+        .var-neg { color: #dc2626; font-weight: bold; }
+        .var-neu { color: #9ca3af; }
+
         .footer-info {
             margin-top: 40px;
             text-align: center;
@@ -190,6 +195,7 @@
                         <th>Mín ($)</th>
                         <th>Máx ($)</th>
                         <th class="col-promedio">Prom ($)</th>
+                        <th>Var. Semanal</th>
                         <th>Cabezas</th>
                         <th>Kgs Total</th>
                     </tr>
@@ -204,6 +210,19 @@
                         <td>{{ "%.0f"|format(row.precio_min_kg) }}</td>
                         <td>{{ "%.0f"|format(row.precio_max_kg) }}</td>
                         <td class="col-promedio">{{ "%.2f"|format(row.precio_promedio_kg) }}</td>
+                        <td>
+                            {% if row.variacion_semanal_precio is not none %}
+                                {% if row.variacion_semanal_precio > 0 %}
+                                    <span class="var-pos">▲ {{ "%.2f"|format(row.variacion_semanal_precio) }}%</span>
+                                {% elif row.variacion_semanal_precio < 0 %}
+                                    <span class="var-neg">▼ {{ "%.2f"|format(row.variacion_semanal_precio) }}%</span>
+                                {% else %}
+                                    <span class="var-neu">-</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="var-neu">-</span>
+                            {% endif %}
+                        </td>
                         <td class="col-volumen">{{ row.cabezas }}</td>
                         <td class="col-volumen">{{ "{:,}".format(row.kilos_total|int) }}</td>
                     </tr>
